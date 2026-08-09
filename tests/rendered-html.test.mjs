@@ -31,6 +31,11 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /SYSTEM ONLINE/i);
   assert.doesNotMatch(html, />OPTIONS</i);
   assert.match(html, /ABOUT/);
+  assert.match(html, /GRAPHIC/);
+  assert.match(html, /MOTION/);
+  assert.match(html, /SEND MESSAGE/);
+  assert.match(html, /THANKS FOR PLAYING/);
+  assert.doesNotMatch(html, /COMING NEXT/i);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
 
@@ -52,6 +57,11 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /Array\.from\(\{ length: 5 \}/);
   assert.match(component, /highestSection/);
   assert.match(component, /highestSection \+ 1/);
+  assert.match(component, /IntersectionObserver/);
+  assert.match(component, /role="dialog"/);
+  assert.match(component, /mailto:/);
+  assert.match(component, /mobile-nav-toggle/);
+  assert.match(component, /id="finish"/);
   assert.doesNotMatch(component, /className="arcade-marquee"/);
   assert.doesNotMatch(component, /<strong>PORTFOLIO<\/strong>/);
   assert.doesNotMatch(component, /className="health"/);
@@ -59,6 +69,10 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /prefers-reduced-motion: reduce/);
   assert.match(styles, /@keyframes heart-gain/);
   assert.match(styles, /@keyframes heart-ring/);
+  assert.match(styles, /\.project-grid/);
+  assert.match(styles, /\.motion-grid/);
+  assert.match(styles, /\.contact-grid/);
+  assert.match(styles, /\.case-overlay/);
   assert.doesNotMatch(styles, /\.arcade-marquee/);
   assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
   assert.match(layout, /og-v3\.png/);

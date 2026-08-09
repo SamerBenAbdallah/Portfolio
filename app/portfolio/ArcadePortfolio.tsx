@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { portfolioData as data } from "../data/portfolio";
 
@@ -11,6 +11,19 @@ type MusicEngine = {
   nextNoteTime: number;
   step: number;
   active: boolean;
+};
+
+type SelectedProject = {
+  kind: "graphic" | "motion";
+  title: string;
+  category: string;
+  description: string;
+  tools: readonly string[];
+  deliverables: readonly string[];
+  icon: string;
+  accent: string;
+  secondary: string;
+  duration?: string;
 };
 
 const melody = [76, null, 79, 81, 83, null, 81, 79, 76, 76, 79, null, 74, null, 71, null, 76, null, 79, 81, 83, 86, 83, 81, 79, null, 76, 74, 71, 74, 76, null] as const;
@@ -151,7 +164,7 @@ function ArcadeStage({
   );
 }
 
-function AboutSection() {
+/* Legacy AboutSection markup retained in version history.
   const [activeSection, setActiveSection] = useState(0);
   const [highestSection, setHighestSection] = useState(0);
   const heartCount = Math.min(5, highestSection + 1);
@@ -250,10 +263,235 @@ function AboutSection() {
       </section>
 
       <section className="future-levels" aria-label="Future portfolio levels">
-        <div id="work"><span>LEVEL 02</span><strong>SELECTED WORK</strong><small>COMING NEXT</small></div>
-        <div id="motion"><span>LEVEL 03</span><strong>MOTION LAB</strong><small>COMING NEXT</small></div>
-        <div id="contact"><span>LEVEL 04</span><strong>CONTACT</strong><small>COMING NEXT</small></div>
+        <div id="work"><span>LEVEL 02</span><strong>SELECTED WORK</strong></div>
+        <div id="motion"><span>LEVEL 03</span><strong>MOTION LAB</strong></div>
+        <div id="contact"><span>LEVEL 04</span><strong>CONTACT</strong></div>
       </section>
+    </main>
+  );
+*/
+
+function ProjectModal({ project, onClose }: { project: SelectedProject; onClose: () => void }) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const [playing, setPlaying] = useState(project.kind === "motion");
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div className="case-overlay">
+      <article
+        className="case-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="case-title"
+        style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}
+      >
+        <button ref={closeButton} className="case-close" type="button" onClick={onClose} aria-label="Close project case file">×</button>
+        <div className={`case-preview ${project.kind} ${playing ? "is-playing" : ""}`}>
+          <span className="case-status">{`${project.kind === "motion" ? "MOTION FEED" : "DESIGN FILE"} // ONLINE`}</span>
+          <div className="case-preview-stage">
+            <i className="preview-orbit orbit-one" />
+            <i className="preview-orbit orbit-two" />
+            <img src={project.icon} alt="" />
+            <strong>{project.title}</strong>
+          </div>
+          {project.kind === "motion" && (
+            <button className="preview-control" type="button" onClick={() => setPlaying((current) => !current)}>
+              {playing ? "Ⅱ PAUSE PREVIEW" : "▶ PLAY PREVIEW"}
+            </button>
+          )}
+        </div>
+        <div className="case-details">
+          <p className="case-eyebrow">CASE FILE // {project.category}</p>
+          <h2 id="case-title">{project.title}</h2>
+          <p>{project.description}</p>
+          <div className="case-data-grid">
+            <div><span>TOOLS</span><strong>{project.tools.join(" + ")}</strong></div>
+            {project.duration && <div><span>DURATION</span><strong>{project.duration}</strong></div>}
+            <div><span>OUTPUT</span><strong>{project.deliverables.join(" / ")}</strong></div>
+          </div>
+          <div className="case-complete"><span>✓</span> PROJECT PREVIEW READY</div>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function AboutSection() {
+  const [activeSection, setActiveSection] = useState(0);
+  const [highestSection, setHighestSection] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
+  const [contactStatus, setContactStatus] = useState("");
+  const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
+  const heartCount = Math.min(5, highestSection + 1);
+
+  const visitSection = (index: number) => {
+    setActiveSection(Math.min(index, data.navigation.length - 1));
+    setHighestSection((current) => Math.max(current, index));
+    setMobileMenuOpen(false);
+  };
+
+  const openProject = (project: SelectedProject, trigger: HTMLButtonElement) => {
+    lastProjectTrigger.current = trigger;
+    setSelectedProject(project);
+  };
+
+  const closeProject = () => {
+    setSelectedProject(null);
+    window.setTimeout(() => lastProjectTrigger.current?.focus(), 0);
+  };
+
+  useEffect(() => {
+    const sectionIds = ["about", "work", "motion", "contact", "finish"];
+    const syncSectionFromHash = () => {
+      const index = sectionIds.indexOf(window.location.hash.slice(1));
+      if (index >= 0) visitSection(index);
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const index = sectionIds.indexOf(entry.target.id);
+        if (index >= 0) visitSection(index);
+      });
+    }, { rootMargin: "-20% 0px -20% 0px", threshold: 0.01 });
+    const unlockGameComplete = () => {
+      const footer = document.getElementById("finish");
+      if (!footer) return;
+      const bounds = footer.getBoundingClientRect();
+      if (bounds.top < window.innerHeight * 0.92 && bounds.bottom > 0) visitSection(4);
+    };
+
+    sectionIds.forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    });
+    syncSectionFromHash();
+    window.addEventListener("hashchange", syncSectionFromHash);
+    window.addEventListener("scroll", unlockGameComplete, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("hashchange", syncSectionFromHash);
+      window.removeEventListener("scroll", unlockGameComplete);
+    };
+  }, []);
+
+  const submitContact = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const projectType = String(formData.get("projectType") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
+
+    if (!name || !email || !projectType || !message || !/^\S+@\S+\.\S+$/.test(email)) {
+      setContactStatus("CHECK INPUT // COMPLETE EVERY FIELD WITH A VALID EMAIL");
+      return;
+    }
+
+    const subject = encodeURIComponent(`${projectType} project inquiry from ${name}`);
+    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\nProject type: ${projectType}\n\n${message}`);
+    setContactStatus("MESSAGE READY // OPENING YOUR EMAIL APP");
+    window.location.href = `mailto:${data.contactEmail}?subject=${subject}&body=${body}`;
+    form.reset();
+  };
+
+  return (
+    <main className="about-level" id="about" aria-labelledby="about-heading">
+      <nav className="game-nav" aria-label="Portfolio sections">
+        <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About" onClick={() => visitSection(0)}><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
+        <div className={`nav-links ${mobileMenuOpen ? "is-open" : ""}`}>
+          {data.navigation.map((item, index) => (
+            <a key={item} className={index === activeSection ? "active" : ""} href={`#${item.toLowerCase()}`} onClick={() => visitSection(index)}>{item}</a>
+          ))}
+        </div>
+        <button className="mobile-nav-toggle" type="button" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen((current) => !current)}>
+          <i /><i /><i /><span className="sr-only">Toggle section navigation</span>
+        </button>
+        <div className="lives" aria-label={`${heartCount} of 5 hearts unlocked`}>
+          {Array.from({ length: 5 }, (_, index) => {
+            const filled = index < heartCount;
+            return <span key={`${index}-${filled}`} className={`heart ${filled ? "filled" : "empty"}`} aria-hidden="true">{filled ? "♥" : "♡"}</span>;
+          })}
+        </div>
+      </nav>
+
+      <section className="about-shell">
+        <div className="level-kicker"><span>LEVEL 01</span><i /><small>PLAYER PROFILE</small></div>
+        <div className="about-grid">
+          <figure className="profile-panel"><img src={data.profileImage} alt="Pixel-art portrait of Samer Ben Abdallah" /><figcaption>SAMER BEN ABDALLAH // GRAPHIC &amp; MOTION DESIGNER</figcaption></figure>
+          <div className="about-copy">
+            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>CHARACTER SELECTED</p><h1 id="about-heading"><span>ABOUT</span> <strong>SAMER BEN ABDALLAH</strong></h1></div></div>
+            <p className="bio">{data.about}</p>
+            <div className="stats" aria-label="Portfolio statistics">{data.stats.map((stat) => <div className="stat" key={stat.label}><img src={stat.icon} alt="" /><div><strong>{stat.value}</strong><small>{stat.label}</small></div></div>)}</div>
+            <div className="inventory"><div className="section-label"><span>SKILLS &amp; TOOLS</span><i /></div><div className="skill-list">{data.skills.map((skill) => <div className="skill" key={skill.name} title={skill.name}><img src={skill.icon} alt="" /><small>{skill.name}</small></div>)}</div></div>
+            <a className="work-button" href="#work" onClick={() => visitSection(1)}>VIEW MY WORK <span>▶</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section className="portfolio-level work-level" id="work" aria-labelledby="work-heading">
+        <div className="level-shell">
+          <div className="level-kicker"><span>LEVEL 02</span><i /><small>DESIGN ARCHIVE</small></div>
+          <header className="level-heading"><p>SELECT A CASE FILE</p><h2 id="work-heading"><span>GRAPHIC</span> DESIGN</h2><p className="level-intro">Identity systems, campaigns, and visual tools built to make ideas recognizable at every size.</p></header>
+          <div className="project-grid">
+            {data.graphicProjects.map((project, index) => (
+              <article className={`project-card card-${(index % 3) + 1}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+                <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><i className="art-grid" /><i className="art-disc" /><img src={project.icon} alt="" /><strong>{project.category}</strong></div>
+                <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="portfolio-level motion-level" id="motion" aria-labelledby="motion-heading">
+        <div className="level-shell">
+          <div className="level-kicker"><span>LEVEL 03</span><i /><small>MOTION LAB</small></div>
+          <header className="level-heading"><p>PRESS PLAY</p><h2 id="motion-heading"><span>MOTION</span> DESIGN</h2><p className="level-intro">Motion systems where timing, type, sound, and transitions turn static ideas into memorable stories.</p></header>
+          <div className="motion-grid">
+            {data.motionProjects.map((project, index) => (
+              <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><div className="motion-signal"><i /><i /><i /><i /><i /></div><img src={project.icon} alt="" /><strong>{project.featured ? "SHOWREEL" : `CLIP 0${index}`}</strong></div>
+                <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="portfolio-level contact-level" id="contact" aria-labelledby="contact-heading">
+        <div className="level-shell">
+          <div className="level-kicker"><span>LEVEL 04</span><i /><small>PLAYER TWO WANTED</small></div>
+          <header className="level-heading"><p>NEW MISSION AVAILABLE</p><h2 id="contact-heading"><span>LET&apos;S CREATE</span> SOMETHING</h2><p className="level-intro">Have a brand, campaign, or motion idea in mind? Send the mission brief and let&apos;s build the next level together.</p></header>
+          <div className="contact-grid">
+            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>PLAYER 01 STATUS</p><h3>AVAILABLE FOR SELECT FREELANCE PROJECTS</h3><a href={`mailto:${data.contactEmail}`}>{data.contactEmail}</a><ul><li><span>01</span> Brand identity &amp; campaigns</li><li><span>02</span> Motion graphics &amp; editing</li><li><span>03</span> Social content systems</li></ul><div className="response-time"><small>TYPICAL RESPONSE</small><strong>WITHIN 1–2 DAYS</strong></div></aside>
+            <form className="contact-form" onSubmit={submitContact} noValidate>
+              <div className="form-row"><label><span>PLAYER NAME</span><input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label><span>EMAIL ADDRESS</span><input name="email" type="email" autoComplete="email" placeholder="you@example.com" /></label></div>
+              <label><span>MISSION TYPE</span><select name="projectType" defaultValue=""><option value="" disabled>Select a project type</option><option>Graphic Design</option><option>Motion Design</option><option>Brand Identity</option><option>Social Campaign</option><option>Something Else</option></select></label>
+              <label><span>MISSION BRIEF</span><textarea name="message" rows={6} placeholder="Tell me what you want to create..." /></label>
+              <button className="send-button" type="submit">SEND MESSAGE <span>▶</span></button>
+              <p className={`form-status ${contactStatus ? "is-visible" : ""}`} role="status">{contactStatus || "READY // WAITING FOR INPUT"}</p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <footer className="game-footer" id="finish"><img src="/assets/arcade/icons/invader.png" alt="" /><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div><button type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}>↑ BACK TO TOP</button></footer>
+      {selectedProject && <ProjectModal project={selectedProject} onClose={closeProject} />}
     </main>
   );
 }
