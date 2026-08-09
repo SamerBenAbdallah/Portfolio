@@ -50,12 +50,15 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 5 \}/);
   assert.match(component, /highestSection/);
+  assert.match(component, /highestSection \+ 1/);
+  assert.doesNotMatch(component, /className="arcade-marquee"/);
+  assert.doesNotMatch(component, /<strong>PORTFOLIO<\/strong>/);
   assert.doesNotMatch(component, /className="health"/);
   assert.match(styles, /@media \(max-width: 720px\)/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
   assert.match(styles, /@keyframes heart-gain/);
   assert.match(styles, /@keyframes heart-ring/);
-  assert.match(styles, /\.arcade-marquee[^}]+transform: translateX\(-47%\)/s);
+  assert.doesNotMatch(styles, /\.arcade-marquee/);
   assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
   assert.match(layout, /og-v3\.png/);
 

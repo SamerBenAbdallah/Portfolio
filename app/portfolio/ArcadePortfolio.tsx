@@ -120,9 +120,8 @@ function ArcadeStage({
           alt="A large red arcade cabinet glowing in a dark neon game room"
         />
 
-        <div className="arcade-marquee" aria-hidden="true">
+        <div className="removed-marquee" aria-hidden="true" hidden>
           <span>▦</span>
-          <strong>PORTFOLIO</strong>
           <span>▦</span>
         </div>
 
@@ -155,7 +154,7 @@ function ArcadeStage({
 function AboutSection() {
   const [activeSection, setActiveSection] = useState(0);
   const [highestSection, setHighestSection] = useState(0);
-  const heartCount = Math.min(5, highestSection + 2);
+  const heartCount = Math.min(5, highestSection + 1);
 
   const visitSection = (index: number) => {
     setActiveSection(index);
@@ -309,7 +308,7 @@ export function ArcadePortfolio() {
         .set(".intro-screen", { display: "none" })
         .to(".arcade-stage", { autoAlpha: 1, duration: 0.18 })
         .to(".arcade-artboard", { y: 0, scale: 1, duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, "<")
-        .fromTo(".arcade-marquee, .machine-screen", { filter: "brightness(2.6)", autoAlpha: 0 }, { filter: "brightness(1)", autoAlpha: 1, duration: 0.4 }, "-=0.2")
+        .fromTo(".machine-screen", { filter: "brightness(2.6)", autoAlpha: 0 }, { filter: "brightness(1)", autoAlpha: 1, duration: 0.4 }, "-=0.2")
         .fromTo(".start-hint, .sound-toggle", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
     }, root);
 

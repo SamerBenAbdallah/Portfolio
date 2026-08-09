@@ -43,8 +43,6 @@ img { max-width: 100%; }
 .arcade-artboard { position: absolute; left: 50%; top: 50%; width: max(100vw, 177.68vh); height: max(100vh, 56.28vw); transform: translate(-50%, -50%); transform-origin: 50% 65%; }
 .arcade-room-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
 .arcade-artboard::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 9vw rgba(0,0,12,.72); }
-.arcade-marquee { position: absolute; left: 50%; top: 5.05%; z-index: 3; width: 32.9%; height: 10.5%; display: flex; align-items: center; justify-content: center; gap: 1.3vw; color: var(--yellow); font-family: Impact, "Arial Black", sans-serif; font-size: clamp(1.25rem, 4.6vh, 3.4rem); letter-spacing: .045em; text-shadow: 0 3px 0 #ad1a21, 0 0 12px rgba(255,210,28,.7); transform: translateX(-47%); }
-.arcade-marquee span { color: var(--yellow); font-family: "Courier New", monospace; font-size: .56em; }
 .machine-screen { position: absolute; left: 34.45%; top: 20.25%; z-index: 4; width: 31.05%; height: 42.3%; padding: 0; overflow: hidden; display: grid; place-items: center; border: 0; border-radius: 11% / 9%; background: radial-gradient(ellipse at 50% 42%, rgba(17,63,159,.33), rgba(0,3,18,.18) 72%); color: white; cursor: pointer; text-align: center; transform-origin: center; text-shadow: 3px 3px 0 #071357; transition: filter .2s ease; }
 .machine-screen::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 32px 10px rgba(0,0,0,.65), inset 0 0 14px rgba(25,199,255,.22); pointer-events: none; }
 .machine-screen.is-ready:hover { filter: brightness(1.24) drop-shadow(0 0 10px rgba(31,231,255,.5)); }
@@ -153,7 +151,6 @@ img { max-width: 100%; }
   .about-grid { grid-template-columns: minmax(260px, .75fr) minmax(400px, 1.25fr); }
   .profile-panel,
   .profile-panel > img { min-height: 520px; }
-  .arcade-marquee { font-size: clamp(1.2rem, 4.2vh, 2.5rem); }
 }
 
 @media (max-width: 720px) {
@@ -177,7 +174,6 @@ img { max-width: 100%; }
   .intro-role { margin-top: 12px; }
   .intro-prompt { margin-top: 13px; }
   .arcade-artboard { width: max(168vw, 177.68vh); }
-  .arcade-marquee { font-size: clamp(1rem, 3.7vh, 2rem); }
   .screen-display strong { font-size: clamp(2.1rem, 7.2vh, 3.8rem); }
   .music-toggle { right: 9px; bottom: 9px; min-width: 124px; padding: 7px 9px 6px; }
   .about-title-row > img { width: 35px; height: 35px; }
