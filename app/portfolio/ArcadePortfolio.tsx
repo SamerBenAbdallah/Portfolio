@@ -137,10 +137,11 @@ function ArcadeStage({
             <span className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</span>
           ) : (
             <span className="screen-display">
-              <small>{data.playerLabel} // READY</small>
-              <strong>PRESS<br />START</strong>
-              <span className="screen-choice"><i /> START</span>
-              <span className="screen-option">OPTIONS</span>
+              <small>SYSTEM ONLINE</small>
+              <strong>
+                <span className="press-line"><i className="press-cursor" />PRESS</span>
+                <span>START</span>
+              </strong>
             </span>
           )}
         </button>
@@ -155,7 +156,7 @@ function AboutSection() {
   return (
     <main className="about-level" id="about" aria-labelledby="about-heading">
       <nav className="game-nav" aria-label="Portfolio sections">
-        <a href="#about" className="brand"><img className="brand-mark" src={data.brandMark} alt="" />{data.playerLabel}</a>
+        <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About"><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
         <div className="nav-links">
           {data.navigation.map((item, index) => (
             <a key={item} className={index === 0 ? "active" : ""} href={`#${item.toLowerCase()}`}>{item}</a>
@@ -178,7 +179,7 @@ function AboutSection() {
               <img src={data.brandMark} alt="" />
               <div>
                 <p>CHARACTER SELECTED</p>
-                <h1 id="about-heading"><span>ABOUT</span> SAMER BEN ABDALLAH</h1>
+                <h1 id="about-heading"><span>ABOUT</span> <strong>SAMER BEN ABDALLAH</strong></h1>
               </div>
             </div>
             <div className="health" aria-label="Four out of five energy points">♥ ♥ ♥ ♥ <span>♡</span></div>
@@ -307,12 +308,12 @@ export function ArcadePortfolio() {
     gsap.timeline()
       .to(".machine-screen", { scale: 0.985, duration: 0.08 })
       .to(".machine-screen", { scale: 1, duration: 0.1 })
-      .call(() => setCountdown(`${data.playerLabel}\nREADY?`))
-      .call(() => setCountdown("3"), [], "+=0.28")
-      .call(() => setCountdown("2"), [], "+=0.18")
-      .call(() => setCountdown("1"), [], "+=0.18")
-      .call(() => setCountdown("GO!"), [], "+=0.18")
-      .to(".arcade-stage", { scale: reduced ? 1 : 1.08, autoAlpha: 0, duration: reduced ? 0.25 : 0.58, ease: "power3.in" }, "+=0.18")
+      .call(() => setCountdown("READY?"))
+      .call(() => setCountdown("3"), [], "+=0.65")
+      .call(() => setCountdown("2"), [], "+=0.65")
+      .call(() => setCountdown("1"), [], "+=0.65")
+      .call(() => setCountdown("GO!"), [], "+=0.65")
+      .to(".arcade-stage", { scale: reduced ? 1 : 1.08, autoAlpha: 0, duration: reduced ? 0.25 : 0.58, ease: "power3.in" }, "+=0.52")
       .set(".arcade-stage", { display: "none" })
       .set(".about-level", { display: "block" })
       .fromTo(".about-level", { autoAlpha: 0 }, { autoAlpha: 1, duration: reduced ? 0.2 : 0.5 })

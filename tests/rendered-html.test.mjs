@@ -28,6 +28,8 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /arcade-room-v2\.png/i);
   assert.match(html, /portfolio-title-v2\.png/i);
   assert.match(html, /Press start to enter the portfolio/i);
+  assert.match(html, /SYSTEM ONLINE/i);
+  assert.doesNotMatch(html, />OPTIONS</i);
   assert.match(html, /ABOUT/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/i);
 });
