@@ -5,15 +5,15 @@ import gsap from "gsap";
 import { portfolioData as data } from "../data/portfolio";
 
 const decor = [
-  ["♥", "d-heart"], ["♛", "d-crown"], ["✦", "d-star"], ["⚡", "d-bolt"],
-  ["◆", "d-coin"], ["+", "d-plus"], ["⌁", "d-wave"], ["♣", "d-club"],
+  ["HEART", "d-heart"], ["CROWN", "d-crown"], ["STAR", "d-star"], ["BOLT", "d-bolt"],
+  ["COIN", "d-coin"], ["+", "d-plus"], ["GHOST", "d-wave"], ["INVADER", "d-club"],
 ] as const;
 
 function ArcadeMachine({ countdown }: { countdown: string }) {
   return (
     <div className="cabinet" aria-label="Red illustrated arcade cabinet">
       <div className="cabinet-side cabinet-side-left" />
-      <div className="marquee"><span>★</span> PORTFOLIO <span>★</span></div>
+      <div className="marquee"><span className="marquee-invader">◆</span> PORTFOLIO <span className="marquee-invader">◆</span></div>
       <div className="cabinet-face">
         <div className="screen-bezel">
           <div className="crt-screen">
@@ -24,7 +24,7 @@ function ArcadeMachine({ countdown }: { countdown: string }) {
                 <div className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</div>
               ) : (
                 <>
-                  <div className="press-copy"><small>◆</small><strong>PRESS<br />START</strong><small>◆</small></div>
+                  <div className="press-copy"><strong>PRESS<br />START</strong></div>
                   <div className="screen-menu"><span className="active">▶ START</span><span>OPTIONS</span></div>
                 </>
               )}
@@ -80,7 +80,7 @@ function AboutSection() {
 
           <div className="about-copy">
             <p className="eyebrow">// PLAYER PROFILE</p>
-            <h1 id="about-heading">{data.aboutHeading}</h1>
+            <h1 id="about-heading"><span>ABOUT</span> PLAYER 01</h1>
             <p className="bio">{data.about}</p>
 
             <div className="stats" aria-label="Portfolio statistics">
@@ -199,8 +199,11 @@ export function ArcadePortfolio() {
     <div className="portfolio-root" ref={root}>
       <section className="intro-screen" aria-label="Portfolio intro">
         <div className="intro-grid" />
+        <div className="dot-field dot-field-left" aria-hidden="true" />
+        <div className="dot-field dot-field-right" aria-hidden="true" />
         <div className="intro-copy">
           <p className="intro-player">{data.playerLabel}</p>
+          <div className="pixel-invader intro-decor" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
           <div className="title-wrap">
             <h1 className="pixel-title"><span className="hash">#</span>{data.title}</h1>
             <div className="title-pixels" aria-hidden="true">
@@ -209,8 +212,8 @@ export function ArcadePortfolio() {
           </div>
           <p className="intro-role">{data.role}</p>
         </div>
-        <span className="intro-decor ghost ghost-a">⌁</span><span className="intro-decor ghost ghost-b">⌁</span>
-        <span className="intro-decor invader">♟</span><span className="intro-decor star">✦</span>
+        <span className="intro-decor pixel-ghost ghost-a"><i /><i /></span><span className="intro-decor pixel-ghost ghost-b"><i /><i /></span>
+        <span className="intro-decor star">✦</span>
         <span className="intro-decor plus plus-a">+</span><span className="intro-decor plus plus-b">+</span>
         <span className="intro-decor tiny tiny-a">▪ ▪</span><span className="intro-decor tiny tiny-b">▪</span>
       </section>

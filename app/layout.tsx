@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Player 01 — Portfolio",
       description: "Graphic & Motion Designer. Press start to enter Level 01.",
-      images: [{ url: image, width: 1731, height: 909, alt: "Player 01 arcade portfolio" }],
+      images: [{ url: image, width: 1672, height: 941, alt: "Player 01 arcade portfolio" }],
     },
     twitter: {
       card: "summary_large_image",
