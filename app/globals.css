@@ -43,7 +43,7 @@ img { max-width: 100%; }
 .arcade-artboard { position: absolute; left: 50%; top: 50%; width: max(100vw, 177.68vh); height: max(100vh, 56.28vw); transform: translate(-50%, -50%); transform-origin: 50% 65%; }
 .arcade-room-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
 .arcade-artboard::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 9vw rgba(0,0,12,.72); }
-.arcade-marquee { position: absolute; left: 33.55%; top: 5.05%; z-index: 3; width: 32.9%; height: 10.5%; display: flex; align-items: center; justify-content: center; gap: 1.3vw; color: var(--yellow); font-family: Impact, "Arial Black", sans-serif; font-size: clamp(1.25rem, 4.6vh, 3.4rem); letter-spacing: .045em; text-shadow: 0 3px 0 #ad1a21, 0 0 12px rgba(255,210,28,.7); }
+.arcade-marquee { position: absolute; left: 50%; top: 5.05%; z-index: 3; width: 32.9%; height: 10.5%; display: flex; align-items: center; justify-content: center; gap: 1.3vw; color: var(--yellow); font-family: Impact, "Arial Black", sans-serif; font-size: clamp(1.25rem, 4.6vh, 3.4rem); letter-spacing: .045em; text-shadow: 0 3px 0 #ad1a21, 0 0 12px rgba(255,210,28,.7); transform: translateX(-47%); }
 .arcade-marquee span { color: var(--yellow); font-family: "Courier New", monospace; font-size: .56em; }
 .machine-screen { position: absolute; left: 34.45%; top: 20.25%; z-index: 4; width: 31.05%; height: 42.3%; padding: 0; overflow: hidden; display: grid; place-items: center; border: 0; border-radius: 11% / 9%; background: radial-gradient(ellipse at 50% 42%, rgba(17,63,159,.33), rgba(0,3,18,.18) 72%); color: white; cursor: pointer; text-align: center; transform-origin: center; text-shadow: 3px 3px 0 #071357; transition: filter .2s ease; }
 .machine-screen::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 32px 10px rgba(0,0,0,.65), inset 0 0 14px rgba(25,199,255,.22); pointer-events: none; }
@@ -84,7 +84,7 @@ img { max-width: 100%; }
 .nav-links a:hover,
 .nav-links a.active { color: var(--yellow); }
 .nav-links a.active::after { content: ""; position: absolute; left: 50%; bottom: 12px; width: 5px; height: 5px; background: var(--yellow); box-shadow: 0 0 8px var(--yellow); transform: translateX(-50%); }
-.lives { justify-self: end; display: flex; align-items: center; gap: 4px; color: var(--pink); font-size: .86rem; text-shadow: 0 0 9px rgba(255,47,149,.55); }
+.lives { justify-self: end; display: flex; align-items: center; gap: 6px; color: var(--pink); font-size: clamp(1.05rem, 1.35vw, 1.28rem); text-shadow: 0 0 9px rgba(255,47,149,.55); }
 .heart { position: relative; display: inline-grid; width: 1.05em; place-items: center; line-height: 1; transform-origin: center; }
 .heart.empty { color: #6675af; text-shadow: none; }
 .heart.filled { color: var(--pink); animation: heart-gain .72s cubic-bezier(.2,1.55,.45,1) both; }

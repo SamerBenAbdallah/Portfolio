@@ -55,6 +55,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /prefers-reduced-motion: reduce/);
   assert.match(styles, /@keyframes heart-gain/);
   assert.match(styles, /@keyframes heart-ring/);
+  assert.match(styles, /\.arcade-marquee[^}]+transform: translateX\(-47%\)/s);
+  assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
   assert.match(layout, /og-v3\.png/);
 
   await Promise.all([
