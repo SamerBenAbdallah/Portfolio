@@ -46,6 +46,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /NEON RUN/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
+  assert.doesNotMatch(component, /className="intro-player"/);
   assert.match(component, /className="start-line"/);
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 5 \}/);
