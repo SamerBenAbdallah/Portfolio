@@ -490,7 +490,7 @@ function AboutSection() {
         </div>
       </section>
 
-      <footer className="game-footer" id="finish"><img src="/assets/arcade/icons/invader.png" alt="" /><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div><button type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}>↑ BACK TO TOP</button></footer>
+      <footer className="game-footer" id="finish"><img src="/assets/arcade/v3/official-site-icon.png" alt="" /><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div><button type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}>↑ BACK TO TOP</button></footer>
       {selectedProject && <ProjectModal project={selectedProject} onClose={closeProject} />}
     </main>
   );

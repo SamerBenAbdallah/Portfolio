@@ -62,6 +62,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /mailto:/);
   assert.match(component, /mobile-nav-toggle/);
   assert.match(component, /id="finish"/);
+  assert.match(component, /official-site-icon\.png/);
   assert.doesNotMatch(component, /<span>ABOUT<\/span>/);
   assert.doesNotMatch(component, /className="arcade-marquee"/);
   assert.doesNotMatch(component, /<strong>PORTFOLIO<\/strong>/);
@@ -85,6 +86,7 @@ test("ships the complete production artwork and interaction source", async () =>
     access(new URL("../public/assets/arcade/v2/arcade-room-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/player-avatar-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
+    access(new URL("../public/assets/arcade/v3/official-site-icon.png", import.meta.url)),
     access(new URL("../public/og-v3.png", import.meta.url)),
   ]);
 });
