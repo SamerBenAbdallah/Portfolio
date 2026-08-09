@@ -20,7 +20,10 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Player 01 — Graphic &amp; Motion Designer/i);
+  assert.match(html, /Samer Ben Abdallah — Graphic &amp; Motion Designer/i);
+  assert.match(html, /samer-profile\.png/i);
+  assert.match(html, /after-effects\.svg/i);
+  assert.doesNotMatch(html, /Figma/i);
   assert.match(html, /hero-scene-v2\.png/i);
   assert.match(html, /arcade-room-v2\.png/i);
   assert.match(html, /portfolio-title-v2\.png/i);
@@ -43,13 +46,13 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
   assert.match(styles, /@media \(max-width: 720px\)/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
-  assert.match(layout, /og-v2\.png/);
+  assert.match(layout, /og-v3\.png/);
 
   await Promise.all([
     access(new URL("../public/assets/arcade/v2/hero-scene-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/arcade-room-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/player-avatar-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
-    access(new URL("../public/og-v2.png", import.meta.url)),
+    access(new URL("../public/og-v3.png", import.meta.url)),
   ]);
 });

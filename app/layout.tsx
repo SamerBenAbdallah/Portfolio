@@ -6,21 +6,21 @@ export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "localhost:3000";
   const protocol = host.includes("localhost") ? "http" : "https";
-  const image = `${protocol}://${host}/og-v2.png`;
+  const image = `${protocol}://${host}/og-v3.png`;
 
   return {
-    title: "Player 01 — Graphic & Motion Designer",
-    description: "An interactive arcade-inspired graphic and motion design portfolio.",
-    icons: { icon: "/favicon.svg" },
+    title: "Samer Ben Abdallah — Graphic & Motion Designer",
+    description: "Samer Ben Abdallah's interactive arcade-inspired graphic and motion design portfolio.",
+    icons: { icon: "/assets/arcade/v3/samer-mark-transparent.png" },
     openGraph: {
-      title: "Player 01 — Portfolio",
-      description: "Graphic & Motion Designer. Press start to enter Level 01.",
-      images: [{ url: image, width: 1672, height: 941, alt: "Player 01 cinematic arcade portfolio" }],
+      title: "Samer Ben Abdallah — Portfolio",
+      description: "Graphic & Motion Designer. Press start to enter the arcade.",
+      images: [{ url: image, width: 1672, height: 941, alt: "Samer Ben Abdallah's cinematic arcade portfolio" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Player 01 — Portfolio",
-      description: "Graphic & Motion Designer. Press start to enter Level 01.",
+      title: "Samer Ben Abdallah — Portfolio",
+      description: "Graphic & Motion Designer. Press start to enter the arcade.",
       images: [image],
     },
   };

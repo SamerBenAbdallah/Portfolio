@@ -137,7 +137,7 @@ function ArcadeStage({
             <span className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</span>
           ) : (
             <span className="screen-display">
-              <small>PLAYER 01 // READY</small>
+              <small>{data.playerLabel} // READY</small>
               <strong>PRESS<br />START</strong>
               <span className="screen-choice"><i /> START</span>
               <span className="screen-option">OPTIONS</span>
@@ -152,12 +152,10 @@ function ArcadeStage({
 }
 
 function AboutSection() {
-  const portrait = data.profileImage || "/assets/arcade/v2/player-avatar-v2.png";
-
   return (
     <main className="about-level" id="about" aria-labelledby="about-heading">
       <nav className="game-nav" aria-label="Portfolio sections">
-        <a href="#about" className="brand"><span className="brand-invader">▦</span>{data.playerLabel}</a>
+        <a href="#about" className="brand"><img className="brand-mark" src={data.brandMark} alt="" />{data.playerLabel}</a>
         <div className="nav-links">
           {data.navigation.map((item, index) => (
             <a key={item} className={index === 0 ? "active" : ""} href={`#${item.toLowerCase()}`}>{item}</a>
@@ -171,16 +169,16 @@ function AboutSection() {
 
         <div className="about-grid">
           <figure className="profile-panel">
-            <img src={portrait} alt={data.profileImage ? "Portrait of Player 01" : "Fictional Player 01 arcade avatar"} />
-            <figcaption>{data.profileImage ? "PLAYER 01" : "PLACEHOLDER AVATAR // ADD YOUR PORTRAIT"}</figcaption>
+            <img src={data.profileImage} alt="Pixel-art portrait of Samer Ben Abdallah" />
+            <figcaption>SAMER BEN ABDALLAH // GRAPHIC &amp; MOTION DESIGNER</figcaption>
           </figure>
 
           <div className="about-copy">
             <div className="about-title-row">
-              <img src="/assets/arcade/icons/invader.png" alt="" />
+              <img src={data.brandMark} alt="" />
               <div>
                 <p>CHARACTER SELECTED</p>
-                <h1 id="about-heading"><span>ABOUT</span> PLAYER 01</h1>
+                <h1 id="about-heading"><span>ABOUT</span> SAMER BEN ABDALLAH</h1>
               </div>
             </div>
             <div className="health" aria-label="Four out of five energy points">♥ ♥ ♥ ♥ <span>♡</span></div>
@@ -200,7 +198,7 @@ function AboutSection() {
               <div className="skill-list">
                 {data.skills.map((skill) => (
                   <div className="skill" key={skill.name} title={skill.name}>
-                    <span className={skill.color}>{skill.short}</span><small>{skill.name}</small>
+                    <img src={skill.icon} alt="" /><small>{skill.name}</small>
                   </div>
                 ))}
               </div>
@@ -309,7 +307,7 @@ export function ArcadePortfolio() {
     gsap.timeline()
       .to(".machine-screen", { scale: 0.985, duration: 0.08 })
       .to(".machine-screen", { scale: 1, duration: 0.1 })
-      .call(() => setCountdown("PLAYER 01\nREADY?"))
+      .call(() => setCountdown(`${data.playerLabel}\nREADY?`))
       .call(() => setCountdown("3"), [], "+=0.28")
       .call(() => setCountdown("2"), [], "+=0.18")
       .call(() => setCountdown("1"), [], "+=0.18")
