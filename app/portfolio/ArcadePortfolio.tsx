@@ -4,20 +4,112 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { portfolioData as data } from "../data/portfolio";
 
+type MusicEngine = {
+  context: AudioContext;
+  master: GainNode;
+  timer: number;
+  nextNoteTime: number;
+  step: number;
+  active: boolean;
+};
+
+const melody = [76, null, 79, 81, 83, null, 81, 79, 76, 76, 79, null, 74, null, 71, null, 76, null, 79, 81, 83, 86, 83, 81, 79, null, 76, 74, 71, 74, 76, null] as const;
+const bass = [40, 40, 43, 43, 36, 36, 38, 38] as const;
+
+function midiToHz(note: number) {
+  return 440 * 2 ** ((note - 69) / 12);
+}
+
+function scheduleTone(context: AudioContext, destination: AudioNode, note: number, time: number, duration: number, volume: number, type: OscillatorType) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const filter = context.createBiquadFilter();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(midiToHz(note), time);
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(type === "square" ? 2400 : 950, time);
+  gain.gain.setValueAtTime(0.0001, time);
+  gain.gain.exponentialRampToValueAtTime(volume, time + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+  oscillator.connect(filter).connect(gain).connect(destination);
+  oscillator.start(time);
+  oscillator.stop(time + duration + 0.03);
+}
+
+function scheduleKick(context: AudioContext, destination: AudioNode, time: number) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(135, time);
+  oscillator.frequency.exponentialRampToValueAtTime(46, time + 0.11);
+  gain.gain.setValueAtTime(0.12, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.13);
+  oscillator.connect(gain).connect(destination);
+  oscillator.start(time);
+  oscillator.stop(time + 0.14);
+}
+
+function scheduleHat(context: AudioContext, destination: AudioNode, time: number) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(4300, time);
+  gain.gain.setValueAtTime(0.018, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.025);
+  oscillator.connect(gain).connect(destination);
+  oscillator.start(time);
+  oscillator.stop(time + 0.03);
+}
+
+function createArcadeMusic(): MusicEngine {
+  const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const context = new AudioContextClass();
+  const master = context.createGain();
+  const compressor = context.createDynamicsCompressor();
+  master.gain.setValueAtTime(0.24, context.currentTime);
+  compressor.threshold.setValueAtTime(-18, context.currentTime);
+  compressor.ratio.setValueAtTime(5, context.currentTime);
+  master.connect(compressor).connect(context.destination);
+
+  const engine: MusicEngine = {
+    context,
+    master,
+    timer: 0,
+    nextNoteTime: context.currentTime + 0.05,
+    step: 0,
+    active: true,
+  };
+  const stepDuration = 60 / 128 / 4;
+
+  const scheduler = () => {
+    while (engine.active && engine.nextNoteTime < context.currentTime + 0.14) {
+      const index = engine.step % melody.length;
+      const melodyNote = melody[index];
+      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 0.82, 0.055, "square");
+      if (index % 4 === 0) scheduleTone(context, master, bass[(index / 4) % bass.length], engine.nextNoteTime, stepDuration * 3.35, 0.07, "triangle");
+      if (index % 8 === 0) scheduleKick(context, master, engine.nextNoteTime);
+      if (index % 2 === 0) scheduleHat(context, master, engine.nextNoteTime);
+      engine.nextNoteTime += stepDuration;
+      engine.step += 1;
+    }
+  };
+
+  scheduler();
+  engine.timer = window.setInterval(scheduler, 50);
+  void context.resume();
+  return engine;
+}
+
 function ArcadeStage({
   countdown,
   ready,
   started,
-  soundOn,
   onStart,
-  onSound,
 }: {
   countdown: string;
   ready: boolean;
   started: boolean;
-  soundOn: boolean;
   onStart: () => void;
-  onSound: () => void;
 }) {
   return (
     <section className="arcade-stage" aria-label="Press start scene">
@@ -54,9 +146,6 @@ function ArcadeStage({
         </button>
       </div>
 
-      <button className="sound-toggle" onClick={onSound} aria-pressed={soundOn}>
-        <span aria-hidden="true">{soundOn ? "♫" : "♪"}</span> SOUND {soundOn ? "ON" : "OFF"}
-      </button>
       <p className="start-hint">CLICK THE CRT TO BEGIN</p>
     </section>
   );
@@ -136,7 +225,29 @@ export function ArcadePortfolio() {
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [countdown, setCountdown] = useState("");
-  const [soundOn, setSoundOn] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
+  const musicRef = useRef<MusicEngine | null>(null);
+
+  const startMusic = () => {
+    if (musicRef.current?.active) {
+      void musicRef.current.context.resume();
+      return musicRef.current.context;
+    }
+    const engine = createArcadeMusic();
+    musicRef.current = engine;
+    return engine.context;
+  };
+
+  const stopMusic = () => {
+    const engine = musicRef.current;
+    if (!engine) return;
+    engine.active = false;
+    window.clearInterval(engine.timer);
+    engine.master.gain.cancelScheduledValues(engine.context.currentTime);
+    engine.master.gain.setTargetAtTime(0.0001, engine.context.currentTime, 0.035);
+    window.setTimeout(() => void engine.context.close(), 220);
+    musicRef.current = null;
+  };
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -165,14 +276,18 @@ export function ArcadePortfolio() {
 
     return () => {
       ctx.revert();
+      const engine = musicRef.current;
+      if (engine) {
+        engine.active = false;
+        window.clearInterval(engine.timer);
+        void engine.context.close();
+        musicRef.current = null;
+      }
       document.body.style.overflow = "";
     };
   }, []);
 
-  const playConfirm = () => {
-    if (!soundOn) return;
-    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const audio = new AudioContextClass();
+  const playConfirm = (audio: AudioContext) => {
     const oscillator = audio.createOscillator();
     const gain = audio.createGain();
     oscillator.type = "square";
@@ -188,7 +303,7 @@ export function ArcadePortfolio() {
   const startGame = () => {
     if (!ready || started) return;
     setStarted(true);
-    playConfirm();
+    if (soundOn) playConfirm(startMusic());
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     gsap.timeline()
@@ -204,6 +319,16 @@ export function ArcadePortfolio() {
       .set(".about-level", { display: "block" })
       .fromTo(".about-level", { autoAlpha: 0 }, { autoAlpha: 1, duration: reduced ? 0.2 : 0.5 })
       .fromTo(".about-grid > *", { y: reduced ? 8 : 38, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.12, duration: reduced ? 0.2 : 0.65, ease: "power3.out", onComplete: () => { document.body.style.overflow = "auto"; window.scrollTo(0, 0); } }, "<0.06");
+  };
+
+  const toggleMusic = () => {
+    if (soundOn) {
+      stopMusic();
+      setSoundOn(false);
+    } else {
+      setSoundOn(true);
+      startMusic();
+    }
   };
 
   return (
@@ -223,12 +348,15 @@ export function ArcadePortfolio() {
         countdown={countdown}
         ready={ready}
         started={started}
-        soundOn={soundOn}
         onStart={startGame}
-        onSound={() => setSoundOn((value) => !value)}
       />
 
       <AboutSection />
+
+      <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
+        <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
+        <span><small>NEON RUN</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
+      </button>
     </div>
   );
 }

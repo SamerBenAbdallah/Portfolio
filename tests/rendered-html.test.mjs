@@ -37,6 +37,8 @@ test("ships the complete production artwork and interaction source", async () =>
   ]);
 
   assert.match(component, /startGame/);
+  assert.match(component, /createArcadeMusic/);
+  assert.match(component, /NEON RUN/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
   assert.match(styles, /@media \(max-width: 720px\)/);
