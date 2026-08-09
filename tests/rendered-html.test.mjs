@@ -46,8 +46,15 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /NEON RUN/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
+  assert.match(component, /className="start-line"/);
+  assert.doesNotMatch(component, /className="press-line"/);
+  assert.match(component, /Array\.from\(\{ length: 5 \}/);
+  assert.match(component, /highestSection/);
+  assert.doesNotMatch(component, /className="health"/);
   assert.match(styles, /@media \(max-width: 720px\)/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
+  assert.match(styles, /@keyframes heart-gain/);
+  assert.match(styles, /@keyframes heart-ring/);
   assert.match(layout, /og-v3\.png/);
 
   await Promise.all([

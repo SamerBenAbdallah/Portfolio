@@ -139,8 +139,8 @@ function ArcadeStage({
             <span className="screen-display">
               <small>SYSTEM ONLINE</small>
               <strong>
-                <span className="press-line"><i className="press-cursor" />PRESS</span>
-                <span>START</span>
+                <span>PRESS</span>
+                <span className="start-line"><i className="start-cursor" />START</span>
               </strong>
             </span>
           )}
@@ -153,16 +153,57 @@ function ArcadeStage({
 }
 
 function AboutSection() {
+  const [activeSection, setActiveSection] = useState(0);
+  const [highestSection, setHighestSection] = useState(0);
+  const heartCount = Math.min(5, highestSection + 2);
+
+  const visitSection = (index: number) => {
+    setActiveSection(index);
+    setHighestSection((current) => Math.max(current, index));
+  };
+
+  useEffect(() => {
+    const syncSectionFromHash = () => {
+      const hash = window.location.hash.slice(1);
+      const index = data.navigation.findIndex((item) => item.toLowerCase() === hash);
+      if (index >= 0) visitSection(index);
+    };
+
+    syncSectionFromHash();
+    window.addEventListener("hashchange", syncSectionFromHash);
+    return () => window.removeEventListener("hashchange", syncSectionFromHash);
+  }, []);
+
   return (
     <main className="about-level" id="about" aria-labelledby="about-heading">
       <nav className="game-nav" aria-label="Portfolio sections">
         <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About"><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
         <div className="nav-links">
           {data.navigation.map((item, index) => (
-            <a key={item} className={index === 0 ? "active" : ""} href={`#${item.toLowerCase()}`}>{item}</a>
+            <a
+              key={item}
+              className={index === activeSection ? "active" : ""}
+              href={`#${item.toLowerCase()}`}
+              onClick={() => visitSection(index)}
+            >
+              {item}
+            </a>
           ))}
         </div>
-        <div className="lives" aria-label="Three lives remaining">♥ ♥ ♥ <span>♡</span></div>
+        <div className="lives" aria-label={`${heartCount} of 5 hearts unlocked`}>
+          {Array.from({ length: 5 }, (_, index) => {
+            const filled = index < heartCount;
+            return (
+              <span
+                key={`${index}-${filled}`}
+                className={`heart ${filled ? "filled" : "empty"}`}
+                aria-hidden="true"
+              >
+                {filled ? "♥" : "♡"}
+              </span>
+            );
+          })}
+        </div>
       </nav>
 
       <section className="about-shell">
@@ -182,7 +223,6 @@ function AboutSection() {
                 <h1 id="about-heading"><span>ABOUT</span> <strong>SAMER BEN ABDALLAH</strong></h1>
               </div>
             </div>
-            <div className="health" aria-label="Four out of five energy points">♥ ♥ ♥ ♥ <span>♡</span></div>
             <p className="bio">{data.about}</p>
 
             <div className="stats" aria-label="Portfolio statistics">
@@ -205,7 +245,7 @@ function AboutSection() {
               </div>
             </div>
 
-            <a className="work-button" href="#work">VIEW MY WORK <span>▶</span></a>
+            <a className="work-button" href="#work" onClick={() => visitSection(1)}>VIEW MY WORK <span>▶</span></a>
           </div>
         </div>
       </section>
