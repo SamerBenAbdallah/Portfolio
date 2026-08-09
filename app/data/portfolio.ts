@@ -7,10 +7,10 @@ export const portfolioData = {
     "I'm a Graphic & Motion Designer who loves turning ideas into visual stories with personality and purpose.",
   profileImage: "",
   stats: [
-    { icon: "★", label: "EXPERIENCE", value: "XX+" },
-    { icon: "⚡", label: "PROJECTS", value: "XX+" },
-    { icon: "♥", label: "CLIENTS", value: "XX+" },
-    { icon: "♛", label: "ACHIEVEMENTS", value: "XX+" },
+    { icon: "/assets/arcade/icons/star.png", label: "EXPERIENCE", value: "XX+" },
+    { icon: "/assets/arcade/icons/lightning-bolt.png", label: "PROJECTS", value: "XX+" },
+    { icon: "/assets/arcade/icons/heart.png", label: "CLIENTS", value: "XX+" },
+    { icon: "/assets/arcade/icons/crown.png", label: "ACHIEVEMENTS", value: "XX+" },
   ],
   skills: [
     { short: "Ae", name: "After Effects", color: "purple" },

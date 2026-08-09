@@ -5,43 +5,29 @@ import gsap from "gsap";
 import { portfolioData as data } from "../data/portfolio";
 
 const decor = [
-  ["HEART", "d-heart"], ["CROWN", "d-crown"], ["STAR", "d-star"], ["BOLT", "d-bolt"],
-  ["COIN", "d-coin"], ["+", "d-plus"], ["GHOST", "d-wave"], ["INVADER", "d-club"],
+  ["/assets/arcade/icons/heart.png", "d-heart"],
+  ["/assets/arcade/icons/crown.png", "d-crown"],
+  ["/assets/arcade/icons/star.png", "d-star"],
+  ["/assets/arcade/icons/lightning-bolt.png", "d-bolt"],
+  ["/assets/arcade/icons/coin.png", "d-coin"],
+  ["/assets/arcade/icons/plus-pink.png", "d-plus"],
+  ["/assets/arcade/icons/ghost-cyan.png", "d-wave"],
+  ["/assets/arcade/icons/invader.png", "d-club"],
 ] as const;
 
 function ArcadeMachine({ countdown }: { countdown: string }) {
   return (
     <div className="cabinet" aria-label="Red illustrated arcade cabinet">
-      <div className="cabinet-side cabinet-side-left" />
-      <div className="marquee"><span className="marquee-invader">◆</span> PORTFOLIO <span className="marquee-invader">◆</span></div>
-      <div className="cabinet-face">
-        <div className="screen-bezel">
-          <div className="crt-screen">
-            <div className="crt-flash" />
-            <div className="scanlines" />
-            <div className="crt-content">
-              {countdown ? (
-                <div className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</div>
-              ) : (
-                <>
-                  <div className="press-copy"><strong>PRESS<br />START</strong></div>
-                  <div className="screen-menu"><span className="active">▶ START</span><span>OPTIONS</span></div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="control-deck">
-          <div className="joystick"><i /><b /></div>
-          <div className="arcade-buttons"><i className="btn-yellow" /><i className="btn-blue" /><i className="btn-green" /><i className="btn-pink" /></div>
-        </div>
-        <div className="lower-panel">
-          <div className="speaker">••••<br />••••</div>
-          <div className="coin-slot"><i /><span>INSERT<br />COIN</span></div>
-          <div className="player-sticker">P1</div>
-        </div>
+      <img className="cabinet-art" src="/assets/arcade/cabinet/arcade-cabinet.png" alt="" />
+      <div className="machine-screen">
+        <div className="crt-flash" />
+        <div className="scanlines" />
+        {countdown ? (
+          <div className={`countdown asset-countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</div>
+        ) : (
+          <img className="asset-press-screen" src="/assets/arcade/crt/press-start-screen.png" alt="Press Start — Start selected, Options below" />
+        )}
       </div>
-      <div className="cabinet-feet"><i /><i /></div>
     </div>
   );
 }
@@ -74,6 +60,7 @@ function AboutSection() {
                   <small>READY TO DROP IN</small>
                 </div>
               )}
+              <img className="profile-frame-art" src="/assets/arcade/profile/profile-picture-frame.png" alt="" />
             </div>
             <div className="profile-corners"><i /><i /><i /><i /></div>
           </div>
@@ -86,7 +73,7 @@ function AboutSection() {
             <div className="stats" aria-label="Portfolio statistics">
               {data.stats.map((stat) => (
                 <div className="stat" key={stat.label}>
-                  <span>{stat.icon}</span><div><small>{stat.label}</small><strong>{stat.value}</strong></div>
+                  <img src={stat.icon} alt="" /><div><small>{stat.label}</small><strong>{stat.value}</strong></div>
                 </div>
               ))}
             </div>
@@ -131,7 +118,7 @@ export function ArcadePortfolio() {
       gsap.set(".cabinet", { y: reduced ? 20 : "105vh", scale: reduced ? 0.98 : 0.78 });
       gsap.set(".intro-player, .intro-role, .pixel-title, .intro-decor", { autoAlpha: 0 });
       gsap.set(".start-wrap", { autoAlpha: 0, y: 18 });
-      gsap.set(".crt-content, .scanlines", { autoAlpha: 0 });
+      gsap.set(".asset-press-screen, .scanlines", { autoAlpha: 0 });
       gsap.set(".crt-flash", { scaleX: 0, autoAlpha: 0 });
       gsap.set(".about-level", { autoAlpha: 0, display: "none" });
 
@@ -152,7 +139,7 @@ export function ArcadePortfolio() {
         .to(".crt-flash", { autoAlpha: 1, scaleX: 1, duration: reduced ? 0.1 : 0.18, ease: "power4.out" })
         .to(".crt-flash", { scaleY: 38, backgroundColor: "#1d61ff", opacity: 0.4, duration: reduced ? 0.1 : 0.28 })
         .to(".crt-flash", { autoAlpha: 0, duration: 0.12 })
-        .to(".crt-content, .scanlines", { autoAlpha: 1, duration: 0.22 })
+        .to(".asset-press-screen, .scanlines", { autoAlpha: 1, duration: 0.22 })
         .to(".start-wrap", { autoAlpha: 1, y: 0, duration: 0.34, onComplete: () => setReady(true) });
     }, root);
     return () => { ctx.revert(); document.body.style.overflow = ""; };
@@ -181,7 +168,7 @@ export function ArcadePortfolio() {
     const tl = gsap.timeline();
     tl.to(".start-button", { y: 5, scale: 0.97, duration: 0.08 })
       .to(".start-button", { y: 0, scale: 1, duration: 0.1 })
-      .fromTo(".crt-screen", { filter: "brightness(3)" }, { filter: "brightness(1)", duration: 0.13 })
+      .fromTo(".machine-screen", { filter: "brightness(3)" }, { filter: "brightness(1)", duration: 0.13 })
       .call(() => setCountdown("PLAYER 01\nREADY?"))
       .call(() => setCountdown("3"), [], "+=0.22")
       .call(() => setCountdown("2"), [], "+=0.15")
@@ -199,11 +186,13 @@ export function ArcadePortfolio() {
     <div className="portfolio-root" ref={root}>
       <section className="intro-screen" aria-label="Portfolio intro">
         <div className="intro-grid" />
-        <div className="dot-field dot-field-left" aria-hidden="true" />
-        <div className="dot-field dot-field-right" aria-hidden="true" />
+        <img className="corner-texture corner-top-left" src="/assets/arcade/textures/corner-halftone-top-left.png" alt="" />
+        <img className="corner-texture corner-top-right" src="/assets/arcade/textures/corner-halftone-top-right.png" alt="" />
+        <img className="corner-texture corner-bottom-left" src="/assets/arcade/textures/corner-burst-bottom-left.png" alt="" />
+        <img className="corner-texture corner-bottom-right" src="/assets/arcade/textures/corner-burst-bottom-right.png" alt="" />
         <div className="intro-copy">
           <p className="intro-player">{data.playerLabel}</p>
-          <div className="pixel-invader intro-decor" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
+          <img className="pixel-invader intro-decor" src="/assets/arcade/icons/invader.png" alt="" />
           <div className="title-wrap">
             <h1 className="pixel-title"><span className="hash">#</span>{data.title}</h1>
             <div className="title-pixels" aria-hidden="true">
@@ -212,21 +201,26 @@ export function ArcadePortfolio() {
           </div>
           <p className="intro-role">{data.role}</p>
         </div>
-        <span className="intro-decor pixel-ghost ghost-a"><i /><i /></span><span className="intro-decor pixel-ghost ghost-b"><i /><i /></span>
-        <span className="intro-decor star">✦</span>
-        <span className="intro-decor plus plus-a">+</span><span className="intro-decor plus plus-b">+</span>
-        <span className="intro-decor tiny tiny-a">▪ ▪</span><span className="intro-decor tiny tiny-b">▪</span>
+        <img className="intro-decor pixel-ghost ghost-a" src="/assets/arcade/icons/ghost-pink.png" alt="" />
+        <img className="intro-decor pixel-ghost ghost-b" src="/assets/arcade/icons/ghost-blue.png" alt="" />
+        <img className="intro-decor ghost-orange" src="/assets/arcade/icons/ghost-orange.png" alt="" />
+        <img className="intro-decor star" src="/assets/arcade/icons/star.png" alt="" />
+        <img className="intro-decor plus plus-a" src="/assets/arcade/icons/plus-pink.png" alt="" />
+        <img className="intro-decor plus plus-b" src="/assets/arcade/icons/plus-cyan.png" alt="" />
+        <img className="intro-decor tiny tiny-a" src="/assets/arcade/icons/sparkle.png" alt="" />
+        <img className="intro-decor tiny tiny-b" src="/assets/arcade/icons/sparkle.png" alt="" />
       </section>
 
       <section className="arcade-stage" aria-label="Press start scene">
         <div className="stage-stars" aria-hidden="true" />
         <div className="scene-decor" aria-hidden="true">
-          {decor.map(([symbol, className]) => <span key={className} className={className}>{symbol}</span>)}
+          {decor.map(([src, className]) => <img key={className} className={className} src={src} alt="" />)}
         </div>
         <ArcadeMachine countdown={countdown} />
         <div className="start-wrap">
           <button className="start-button pixel-button" onClick={startGame} disabled={!ready || started} aria-label="Start portfolio experience">
-            START <span>▶</span>
+            <img src="/assets/arcade/ui/start-idle.png" alt="" />
+            <span className="sr-only">Start portfolio</span>
           </button>
           <button className="sound-toggle" onClick={() => setSoundOn((value) => !value)} aria-pressed={soundOn}>SOUND: {soundOn ? "ON" : "OFF"}</button>
         </div>
