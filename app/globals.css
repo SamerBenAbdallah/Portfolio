@@ -139,8 +139,8 @@ img { max-width: 100%; }
 .level-shell { position: relative; z-index: 2; width: min(100%, 1260px); margin: 0 auto; padding: clamp(72px, 9vh, 112px) clamp(20px, 4vw, 54px) clamp(84px, 11vh, 136px); }
 .level-heading { max-width: 800px; margin: 0 0 34px; }
 .level-heading > p:first-child { margin: 0 0 8px; color: var(--pink); font-size: .56rem; font-weight: 900; letter-spacing: .18em; }
-.level-heading h2 { margin: 0; color: white; font-size: clamp(2rem, 5.3vw, 4.6rem); line-height: .97; letter-spacing: .015em; text-shadow: 4px 4px 0 #152563; }
-.level-heading h2 span { color: var(--yellow); text-shadow: 4px 4px 0 #9c2933, 0 0 16px rgba(255,210,28,.24); }
+.level-heading h2 { margin: 0; color: white; font-size: clamp(2rem, 5.3vw, 4.6rem); font-weight: 900; line-height: .97; letter-spacing: .015em; text-shadow: 4px 4px 0 #152563; }
+.level-heading h2 span { color: var(--yellow); font-weight: 900; text-shadow: 4px 4px 0 #9c2933, 0 0 16px rgba(255,210,28,.24); }
 .level-intro { max-width: 700px; margin: 17px 0 0; color: #cbd4f7; font-size: clamp(.72rem, 1.15vw, .92rem); line-height: 1.65; }
 
 .project-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
@@ -160,7 +160,7 @@ img { max-width: 100%; }
 .art-disc { position: absolute; width: 52%; aspect-ratio: 1; border: 2px solid var(--project-accent); border-radius: 50%; opacity: .28; box-shadow: 0 0 22px var(--project-accent), inset 0 0 20px var(--project-secondary); }
 .project-copy { min-width: 0; padding: 22px 22px 25px; }
 .project-copy > p, .motion-copy > p { margin: 0 0 7px; color: var(--project-accent); font-size: .5rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
-.project-copy h3, .motion-copy h3 { margin: 0; color: white; font-size: clamp(1rem, 1.9vw, 1.4rem); line-height: 1.15; }
+.project-copy h3, .motion-copy h3 { margin: 0; color: white; font-size: clamp(1rem, 1.9vw, 1.4rem); font-weight: 600; line-height: 1.15; }
 .project-copy > span, .motion-copy > span { display: block; margin: 11px 0 15px; color: #aebae8; font-size: .68rem; line-height: 1.55; }
 .project-tools { display: flex; flex-wrap: wrap; gap: 6px; }
 .project-tools small { padding: 5px 7px 4px; border: 1px solid #354b9c; background: #050a2b; color: #aebcf0; font-size: .42rem; }

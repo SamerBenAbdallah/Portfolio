@@ -232,7 +232,7 @@ function ArcadeStage({
               <img src={data.brandMark} alt="" />
               <div>
                 <p>CHARACTER SELECTED</p>
-                <h1 id="about-heading"><span>ABOUT</span> <strong>SAMER BEN ABDALLAH</strong></h1>
+                <h1 id="about-heading"><strong>SAMER BEN ABDALLAH</strong></h1>
               </div>
             </div>
             <p className="bio">{data.about}</p>
@@ -434,7 +434,7 @@ function AboutSection() {
         <div className="about-grid">
           <figure className="profile-panel"><img src={data.profileImage} alt="Pixel-art portrait of Samer Ben Abdallah" /><figcaption>SAMER BEN ABDALLAH // GRAPHIC &amp; MOTION DESIGNER</figcaption></figure>
           <div className="about-copy">
-            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>CHARACTER SELECTED</p><h1 id="about-heading"><span>ABOUT</span> <strong>SAMER BEN ABDALLAH</strong></h1></div></div>
+            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>CHARACTER SELECTED</p><h1 id="about-heading"><strong>SAMER BEN ABDALLAH</strong></h1></div></div>
             <p className="bio">{data.about}</p>
             <div className="stats" aria-label="Portfolio statistics">{data.stats.map((stat) => <div className="stat" key={stat.label}><img src={stat.icon} alt="" /><div><strong>{stat.value}</strong><small>{stat.label}</small></div></div>)}</div>
             <div className="inventory"><div className="section-label"><span>SKILLS &amp; TOOLS</span><i /></div><div className="skill-list">{data.skills.map((skill) => <div className="skill" key={skill.name} title={skill.name}><img src={skill.icon} alt="" /><small>{skill.name}</small></div>)}</div></div>

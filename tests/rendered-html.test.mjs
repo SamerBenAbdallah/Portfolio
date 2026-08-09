@@ -62,6 +62,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /mailto:/);
   assert.match(component, /mobile-nav-toggle/);
   assert.match(component, /id="finish"/);
+  assert.doesNotMatch(component, /<span>ABOUT<\/span>/);
   assert.doesNotMatch(component, /className="arcade-marquee"/);
   assert.doesNotMatch(component, /<strong>PORTFOLIO<\/strong>/);
   assert.doesNotMatch(component, /className="health"/);
@@ -73,6 +74,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
+  assert.match(styles, /\.level-heading h2[^}]+font-weight: 900/s);
+  assert.match(styles, /\.project-copy h3, \.motion-copy h3[^}]+font-weight: 600/s);
   assert.doesNotMatch(styles, /\.arcade-marquee/);
   assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
   assert.match(layout, /og-v3\.png/);
