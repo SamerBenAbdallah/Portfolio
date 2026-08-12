@@ -90,6 +90,14 @@ img { max-width: 100%; }
 .heart.empty { color: #6675af; text-shadow: none; }
 .heart.filled { color: var(--pink); animation: heart-gain .72s cubic-bezier(.2,1.55,.45,1) both; }
 .heart.filled::after { content: ""; position: absolute; inset: -.3em; border: 2px solid var(--yellow); border-radius: 50%; pointer-events: none; animation: heart-ring .72s ease-out both; }
+.heart.breaking { color: var(--pink); text-shadow: 0 0 9px rgba(255,47,149,.75); animation: heart-break .82s steps(7,end) both; }
+.heart.breaking::before { content: ""; position: absolute; z-index: 2; left: 49%; top: 8%; width: 2px; height: 82%; background: #020518; transform: rotate(19deg); box-shadow: 3px 8px 0 #020518, -2px 14px 0 #020518; animation: heart-crack .82s steps(5,end) both; }
+.heart-shards { position: absolute; inset: 0; pointer-events: none; }
+.heart-shards i { position: absolute; left: 43%; top: 43%; width: .23em; height: .23em; background: var(--pink); box-shadow: 0 0 5px rgba(255,47,149,.8); animation: heart-shard .82s steps(6,end) both; }
+.heart-shards i:nth-child(1) { --shard-x: -1.15em; --shard-y: -.8em; }
+.heart-shards i:nth-child(2) { --shard-x: 1.05em; --shard-y: -.55em; animation-delay: .04s; }
+.heart-shards i:nth-child(3) { --shard-x: -.85em; --shard-y: 1.05em; animation-delay: .08s; }
+.heart-shards i:nth-child(4) { --shard-x: .9em; --shard-y: 1.2em; animation-delay: .12s; }
 
 .about-shell { position: relative; z-index: 2; width: min(100%, 1260px); min-height: calc(100vh - 66px); margin: 0 auto; padding: clamp(36px, 6vh, 72px) clamp(20px, 4vw, 54px) clamp(48px, 8vh, 90px); display: flex; flex-direction: column; justify-content: center; }
 .level-kicker { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; color: var(--yellow); font-size: .62rem; font-weight: 900; letter-spacing: .18em; }
@@ -255,6 +263,14 @@ img { max-width: 100%; }
   0% { opacity: .9; transform: scale(.2); }
   100% { opacity: 0; transform: scale(1.8); }
 }
+@keyframes heart-break {
+  0%, 18% { opacity: 1; transform: scale(1); filter: brightness(1.3); }
+  38% { transform: scale(1.3) rotate(-7deg); filter: brightness(2) drop-shadow(0 0 8px var(--pink)); }
+  62% { opacity: .95; transform: scale(.88) rotate(8deg); }
+  100% { opacity: 0; transform: translateY(.55em) scale(.15) rotate(-16deg); filter: brightness(.8); }
+}
+@keyframes heart-crack { 0%, 22% { opacity: 0; transform: scaleY(.1) rotate(19deg); } 38%, 72% { opacity: 1; transform: scaleY(1) rotate(19deg); } 100% { opacity: 0; transform: scaleY(1.2) rotate(19deg); } }
+@keyframes heart-shard { 0%, 30% { opacity: 0; transform: translate(0,0) scale(.2); } 42% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--shard-x), var(--shard-y)) rotate(135deg) scale(.75); } }
 @keyframes equalize { 0%, 100% { height: 24%; } 34% { height: 100%; } 68% { height: 55%; } }
 @keyframes pixel-arrow-rise { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-7px); } }
 @keyframes motion-float { 0%, 100% { transform: translate(0,0) rotate(-2deg); } 45% { transform: translate(8px,-7px) rotate(3deg); } 75% { transform: translate(-5px,3px) rotate(0); } }

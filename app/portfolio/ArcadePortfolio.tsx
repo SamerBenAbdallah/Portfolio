@@ -394,13 +394,25 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
 
 function AboutSection() {
   const [activeSection, setActiveSection] = useState(0);
+  const [breakingHearts, setBreakingHearts] = useState<readonly number[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
   const [contactStatus, setContactStatus] = useState("");
   const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
+  const activeSectionRef = useRef(0);
+  const heartBreakTimer = useRef<number | null>(null);
   const heartCount = Math.min(5, activeSection + 1);
 
   const visitSection = (index: number) => {
+    const previousSection = activeSectionRef.current;
+    if (index < previousSection) {
+      setBreakingHearts(Array.from({ length: previousSection - index }, (_, offset) => index + offset + 1));
+      if (heartBreakTimer.current !== null) window.clearTimeout(heartBreakTimer.current);
+      heartBreakTimer.current = window.setTimeout(() => setBreakingHearts([]), 820);
+    } else if (index > previousSection) {
+      setBreakingHearts([]);
+    }
+    activeSectionRef.current = index;
     setActiveSection(index);
     setMobileMenuOpen(false);
   };
@@ -444,6 +456,7 @@ function AboutSection() {
     window.addEventListener("scroll", unlockGameComplete, { passive: true });
     return () => {
       observer.disconnect();
+      if (heartBreakTimer.current !== null) window.clearTimeout(heartBreakTimer.current);
       window.removeEventListener("hashchange", syncSectionFromHash);
       window.removeEventListener("scroll", unlockGameComplete);
     };
@@ -485,7 +498,13 @@ function AboutSection() {
         <div className="lives" aria-label={`${heartCount} of 5 hearts unlocked`}>
           {Array.from({ length: 5 }, (_, index) => {
             const filled = index < heartCount;
-            return <span key={`${index}-${filled}`} className={`heart ${filled ? "filled" : "empty"}`} aria-hidden="true">{filled ? "♥" : "♡"}</span>;
+            const breaking = breakingHearts.includes(index);
+            return (
+              <span key={`${index}-${filled}-${breaking}`} className={`heart ${filled ? "filled" : breaking ? "breaking" : "empty"}`} aria-hidden="true">
+                {filled || breaking ? "♥" : "♡"}
+                {breaking && <span className="heart-shards"><i /><i /><i /><i /></span>}
+              </span>
+            );
           })}
         </div>
       </nav>

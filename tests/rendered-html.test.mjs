@@ -63,6 +63,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 5 \}/);
   assert.match(component, /activeSection \+ 1/);
+  assert.match(component, /className="heart-shards"/);
+  assert.match(styles, /@keyframes heart-break/);
   assert.match(component, /const loopSteps = 224/);
   assert.match(component, /className="back-to-top"/);
   assert.match(component, /IntersectionObserver/);
