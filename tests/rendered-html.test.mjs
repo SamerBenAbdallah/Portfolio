@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -33,6 +33,11 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /ABOUT/);
   assert.match(html, /GRAPHIC/);
   assert.match(html, /MOTION/);
+  assert.match(html, /Khanfes Danfes/i);
+  assert.match(html, /B2B Lounge Campaigns/i);
+  assert.match(html, /Nifty Campaign/i);
+  assert.match(html, /Pharmacy Presentations/i);
+  assert.doesNotMatch(html, /Neon Identity System|2026 Motion Reel/i);
   assert.match(html, /SEND MESSAGE/);
   assert.match(html, /THANKS FOR PLAYING/);
   assert.doesNotMatch(html, /COMING NEXT/i);
@@ -59,6 +64,9 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /highestSection \+ 1/);
   assert.match(component, /IntersectionObserver/);
   assert.match(component, /role="dialog"/);
+  assert.match(component, /className="case-media-video"/);
+  assert.match(component, /className="case-playlist"/);
+  assert.match(component, /controls playsInline preload="metadata"/);
   assert.match(component, /mailto:/);
   assert.match(component, /mobile-nav-toggle/);
   assert.match(component, /id="finish"/);
@@ -88,5 +96,13 @@ test("ships the complete production artwork and interaction source", async () =>
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v3/official-site-icon.png", import.meta.url)),
     access(new URL("../public/og-v3.png", import.meta.url)),
+    access(new URL("../public/assets/projects/graphic/khanfes-cover.webp", import.meta.url)),
+    access(new URL("../public/assets/projects/graphic/oenobiol-retail.webp", import.meta.url)),
+    access(new URL("../public/assets/projects/motion/nifty-landscape.mp4", import.meta.url)),
+    access(new URL("../public/assets/projects/motion/nifty-landscape.jpg", import.meta.url)),
   ]);
+
+  const motionAssets = await readdir(new URL("../public/assets/projects/motion/", import.meta.url));
+  assert.equal(motionAssets.filter((file) => file.endsWith(".mp4")).length, 25);
+  assert.equal(motionAssets.filter((file) => file.endsWith(".jpg")).length, 25);
 });

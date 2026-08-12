@@ -20,10 +20,13 @@ type SelectedProject = {
   description: string;
   tools: readonly string[];
   deliverables: readonly string[];
-  icon: string;
   accent: string;
   secondary: string;
   duration?: string;
+  thumbnail?: string;
+  poster?: string;
+  images?: readonly { src: string; alt: string }[];
+  videos?: readonly { title: string; src: string; poster: string; duration: string }[];
 };
 
 const melody = [76, null, 79, 81, 83, null, 81, 79, 76, 76, 79, null, 74, null, 71, null, 76, null, 79, 81, 83, 86, 83, 81, 79, null, 76, 74, 71, 74, 76, null] as const;
@@ -273,7 +276,9 @@ function ArcadeStage({
 
 function ProjectModal({ project, onClose }: { project: SelectedProject; onClose: () => void }) {
   const closeButton = useRef<HTMLButtonElement>(null);
-  const [playing, setPlaying] = useState(project.kind === "motion");
+  const [activeMedia, setActiveMedia] = useState(0);
+  const selectedImage = project.images?.[activeMedia];
+  const selectedVideo = project.videos?.[activeMedia];
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -299,18 +304,36 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
         style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}
       >
         <button ref={closeButton} className="case-close" type="button" onClick={onClose} aria-label="Close project case file">×</button>
-        <div className={`case-preview ${project.kind} ${playing ? "is-playing" : ""}`}>
+        <div className={`case-preview ${project.kind}`}>
           <span className="case-status">{`${project.kind === "motion" ? "MOTION FEED" : "DESIGN FILE"} // ONLINE`}</span>
           <div className="case-preview-stage">
-            <i className="preview-orbit orbit-one" />
-            <i className="preview-orbit orbit-two" />
-            <img src={project.icon} alt="" />
-            <strong>{project.title}</strong>
+            {project.kind === "graphic" && selectedImage && (
+              <img className="case-media-image" src={selectedImage.src} alt={selectedImage.alt} />
+            )}
+            {project.kind === "motion" && selectedVideo && (
+              <video className="case-media-video" key={selectedVideo.src} controls playsInline preload="metadata" poster={selectedVideo.poster}>
+                <source src={selectedVideo.src} type="video/mp4" />
+                Your browser does not support embedded video.
+              </video>
+            )}
           </div>
-          {project.kind === "motion" && (
-            <button className="preview-control" type="button" onClick={() => setPlaying((current) => !current)}>
-              {playing ? "Ⅱ PAUSE PREVIEW" : "▶ PLAY PREVIEW"}
-            </button>
+          {project.images && project.images.length > 1 && (
+            <div className="case-gallery" aria-label={`${project.title} gallery`}>
+              {project.images.map((image, index) => (
+                <button className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => setActiveMedia(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
+                  <img src={image.src} alt="" loading="lazy" /><span>{String(index + 1).padStart(2, "0")}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {project.videos && (
+            <div className="case-playlist" aria-label={`${project.title} video playlist`}>
+              {project.videos.map((video, index) => (
+                <button className={index === activeMedia ? "active" : ""} type="button" key={video.src} onClick={() => setActiveMedia(index)}>
+                  <img src={video.poster} alt="" loading="lazy" /><span><strong>{video.title}</strong><small>{video.duration}</small></span>
+                </button>
+              ))}
+            </div>
           )}
         </div>
         <div className="case-details">
@@ -322,7 +345,7 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
             {project.duration && <div><span>DURATION</span><strong>{project.duration}</strong></div>}
             <div><span>OUTPUT</span><strong>{project.deliverables.join(" / ")}</strong></div>
           </div>
-          <div className="case-complete"><span>✓</span> PROJECT PREVIEW READY</div>
+          <div className="case-complete"><span>✓</span> REAL PROJECT MEDIA LOADED</div>
         </div>
       </article>
     </div>
@@ -450,7 +473,7 @@ function AboutSection() {
           <div className="project-grid">
             {data.graphicProjects.map((project, index) => (
               <article className={`project-card card-${(index % 3) + 1}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
-                <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><i className="art-grid" /><i className="art-disc" /><img src={project.icon} alt="" /><strong>{project.category}</strong></div>
+                <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></div>
                 <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
               </article>
             ))}
@@ -463,9 +486,9 @@ function AboutSection() {
           <div className="level-kicker"><span>LEVEL 03</span><i /><small>MOTION LAB</small></div>
           <header className="level-heading"><p>PRESS PLAY</p><h2 id="motion-heading"><span>MOTION</span> DESIGN</h2><p className="level-intro">Motion systems where timing, type, sound, and transitions turn static ideas into memorable stories.</p></header>
           <div className="motion-grid">
-            {data.motionProjects.map((project, index) => (
+            {data.motionProjects.map((project) => (
               <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
-                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><div className="motion-signal"><i /><i /><i /><i /><i /></div><img src={project.icon} alt="" /><strong>{project.featured ? "SHOWREEL" : `CLIP 0${index}`}</strong></div>
+                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos.length} PROJECTS`}</strong></div>
                 <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
               </article>
             ))}
