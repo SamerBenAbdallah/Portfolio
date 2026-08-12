@@ -27,7 +27,7 @@ export const portfolioData = {
       description: "A Tunisian folklore-inspired strategic card game developed as a complete visual world, from identity and card illustrations to packaging and merchandise.",
       tools: ["Illustrator", "Photoshop"],
       deliverables: ["Identity System", "20-Card Deck", "Packaging & Merchandise"],
-      thumbnail: "/assets/projects/graphic/khanfes-cover.webp",
+      thumbnail: "/assets/projects/graphic/khanfes-logo-thumbnail.webp",
       longform: true,
       images: [
         { src: "/assets/projects/graphic/khanfes-full-project.webp", alt: "The complete Khanfes Danfes identity, card system, packaging, merchandise, and brochure case study" },
@@ -216,6 +216,6 @@ export const portfolioData = {
       featured: false,
     },
   ],
-  contactEmail: "benabdallahsamer5@gmail.com",
+  contactEmail: "samerb.abdallah@gmail.com",
   navigation: ["ABOUT", "WORK", "MOTION", "CONTACT"],
 } as const;

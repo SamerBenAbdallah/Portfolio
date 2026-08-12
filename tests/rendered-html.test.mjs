@@ -54,7 +54,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
   assert.match(component, /ARCADE RUN/);
-  assert.match(component, /const arpeggio/);
+  assert.match(component, /const chordProgression/);
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
@@ -62,8 +62,9 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /className="start-line"/);
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 5 \}/);
-  assert.match(component, /highestSection/);
-  assert.match(component, /highestSection \+ 1/);
+  assert.match(component, /activeSection \+ 1/);
+  assert.match(component, /const loopSteps = 224/);
+  assert.match(component, /className="back-to-top"/);
   assert.match(component, /IntersectionObserver/);
   assert.match(component, /role="dialog"/);
   assert.match(component, /className="case-media-video"/);
@@ -99,7 +100,7 @@ test("ships the complete production artwork and interaction source", async () =>
     access(new URL("../public/assets/arcade/v2/player-avatar-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
     access(new URL("../public/og-v3.png", import.meta.url)),
-    access(new URL("../public/assets/projects/graphic/khanfes-cover.webp", import.meta.url)),
+    access(new URL("../public/assets/projects/graphic/khanfes-logo-thumbnail.webp", import.meta.url)),
     access(new URL("../public/assets/projects/graphic/khanfes-full-project.webp", import.meta.url)),
     access(new URL("../public/assets/projects/graphic/oenobiol-retail.webp", import.meta.url)),
     access(new URL("../public/assets/projects/motion/nifty-landscape.mp4", import.meta.url)),

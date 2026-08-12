@@ -30,9 +30,24 @@ type SelectedProject = {
   videos?: readonly { title: string; src: string; poster: string; duration: string }[];
 };
 
-const melody = [76, 79, 83, 81, 79, 76, 74, 76, 79, 81, 86, 83, 81, 79, 76, 74, 76, null, 79, 81, 83, 81, 79, null, 74, 76, 79, 76, 71, 74, 76, null] as const;
-const bass = [40, 40, 43, 43, 36, 36, 38, 38] as const;
-const arpeggio = [[52, 55, 59, 64], [48, 52, 55, 59], [55, 59, 62, 67], [50, 54, 57, 62]] as const;
+const melodyBars = [
+  [76, null, 79, 83, null, 81, 79, null, 76, null, 74, 76, 79, null, 81, null],
+  [83, null, 81, 79, 76, null, 74, null, 71, null, 74, 76, null, 79, 76, null],
+  [76, 79, null, 83, 86, null, 83, null, 81, 79, null, 76, 74, null, 71, null],
+  [79, null, 83, null, 86, 83, 81, null, 79, null, 76, 79, 81, null, 83, null],
+  [88, null, 86, 83, null, 81, 79, null, 83, null, 81, 79, 76, null, 74, null],
+  [76, null, null, 79, 81, null, 83, null, 86, null, 83, 81, null, 79, 76, null],
+  [79, 81, 83, null, 81, 79, 76, null, 74, 76, 79, null, 76, null, null, null],
+] as const;
+const melodyOrder = [0, 1, 2, 0, 3, 1, 4, 0, 5, 2, 6, 3, 1, 6] as const;
+const bassRoots = [40, 36, 43, 38, 40, 36, 43, 38, 40, 43, 36, 38, 43, 40] as const;
+const chordProgression = [
+  [52, 55, 59, 64], [48, 52, 55, 59], [55, 59, 62, 67], [50, 54, 57, 62],
+  [52, 55, 59, 64], [48, 52, 55, 60], [55, 59, 62, 67], [50, 54, 57, 62],
+  [52, 55, 59, 64], [55, 59, 62, 67], [48, 52, 55, 60], [50, 54, 57, 62],
+  [55, 59, 62, 67], [52, 55, 59, 64],
+] as const;
+const loopSteps = 224;
 
 function midiToHz(note: number) {
   return 440 * 2 ** ((note - 69) / 12);
@@ -100,7 +115,7 @@ function createArcadeMusic(): MusicEngine {
   const context = new AudioContextClass();
   const master = context.createGain();
   const compressor = context.createDynamicsCompressor();
-  master.gain.setValueAtTime(0.2, context.currentTime);
+  master.gain.setValueAtTime(0.16, context.currentTime);
   compressor.threshold.setValueAtTime(-18, context.currentTime);
   compressor.ratio.setValueAtTime(4, context.currentTime);
   master.connect(compressor).connect(context.destination);
@@ -113,20 +128,23 @@ function createArcadeMusic(): MusicEngine {
     step: 0,
     active: true,
   };
-  const stepDuration = 60 / 116 / 4;
+  // Fourteen 16-step bars at 112 BPM make one varied, seamless 30-second loop.
+  const stepDuration = 60 / 112 / 4;
 
   const scheduler = () => {
     while (engine.active && engine.nextNoteTime < context.currentTime + 0.14) {
-      const index = engine.step % melody.length;
-      const melodyNote = melody[index];
-      const chord = arpeggio[Math.floor(engine.step / 32) % arpeggio.length];
-      const arpNote = chord[index % chord.length];
-      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.55, 0.036, "square");
-      if (index % 2 === 0) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.8, 0.013, "triangle");
-      if (index % 8 === 0) scheduleTone(context, master, bass[(engine.step / 8) % bass.length], engine.nextNoteTime, stepDuration * 6.8, 0.045, "triangle");
-      if (index % 16 === 0 || index % 16 === 10) scheduleKick(context, master, engine.nextNoteTime);
-      if (index % 16 === 4 || index % 16 === 12) scheduleSnare(context, master, engine.nextNoteTime);
-      if (index % 2 === 0) scheduleHat(context, master, engine.nextNoteTime);
+      const phraseStep = engine.step % loopSteps;
+      const bar = Math.floor(phraseStep / 16);
+      const barStep = phraseStep % 16;
+      const melodyNote = melodyBars[melodyOrder[bar]][barStep];
+      const chord = chordProgression[bar];
+      const arpNote = chord[(barStep / 2) % chord.length];
+      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.42, 0.027, "square");
+      if (barStep % 2 === 0 && !(bar === 0 && barStep < 8)) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.72, 0.009, "triangle");
+      if (barStep % 8 === 0) scheduleTone(context, master, bassRoots[bar], engine.nextNoteTime, stepDuration * 6.5, 0.033, "triangle");
+      if (barStep === 0 || barStep === 10) scheduleKick(context, master, engine.nextNoteTime);
+      if (barStep === 4 || barStep === 12) scheduleSnare(context, master, engine.nextNoteTime);
+      if (barStep % 2 === 0 && bar !== 13) scheduleHat(context, master, engine.nextNoteTime);
       engine.nextNoteTime += stepDuration;
       engine.step += 1;
     }
@@ -376,16 +394,14 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
 
 function AboutSection() {
   const [activeSection, setActiveSection] = useState(0);
-  const [highestSection, setHighestSection] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
   const [contactStatus, setContactStatus] = useState("");
   const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
-  const heartCount = Math.min(5, highestSection + 1);
+  const heartCount = Math.min(5, activeSection + 1);
 
   const visitSection = (index: number) => {
-    setActiveSection(Math.min(index, data.navigation.length - 1));
-    setHighestSection((current) => Math.max(current, index));
+    setActiveSection(index);
     setMobileMenuOpen(false);
   };
 
@@ -535,7 +551,10 @@ function AboutSection() {
         </div>
       </section>
 
-      <footer className="game-footer" id="finish"><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div><button type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}>↑ BACK TO TOP</button></footer>
+      <footer className="game-footer" id="finish"><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div></footer>
+      <button className="back-to-top" type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })} aria-label="Back to top">
+        <span aria-hidden="true">↑</span><small>TOP</small>
+      </button>
       {selectedProject && <ProjectModal project={selectedProject} onClose={closeProject} />}
     </main>
   );
