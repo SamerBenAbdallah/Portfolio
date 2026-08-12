@@ -53,7 +53,9 @@ test("ships the complete production artwork and interaction source", async () =>
 
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
-  assert.match(component, /NEON RUN/);
+  assert.match(component, /PIXEL DRIFT/);
+  assert.match(component, /scheduleChord/);
+  assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
   assert.doesNotMatch(component, /className="intro-player"/);
@@ -70,7 +72,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /mailto:/);
   assert.match(component, /mobile-nav-toggle/);
   assert.match(component, /id="finish"/);
-  assert.match(component, /official-site-icon\.png/);
+  assert.doesNotMatch(component, /official-site-icon\.png/);
   assert.doesNotMatch(component, /<span>ABOUT<\/span>/);
   assert.doesNotMatch(component, /className="arcade-marquee"/);
   assert.doesNotMatch(component, /<strong>PORTFOLIO<\/strong>/);
@@ -94,9 +96,9 @@ test("ships the complete production artwork and interaction source", async () =>
     access(new URL("../public/assets/arcade/v2/arcade-room-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/player-avatar-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
-    access(new URL("../public/assets/arcade/v3/official-site-icon.png", import.meta.url)),
     access(new URL("../public/og-v3.png", import.meta.url)),
     access(new URL("../public/assets/projects/graphic/khanfes-cover.webp", import.meta.url)),
+    access(new URL("../public/assets/projects/graphic/khanfes-full-project.webp", import.meta.url)),
     access(new URL("../public/assets/projects/graphic/oenobiol-retail.webp", import.meta.url)),
     access(new URL("../public/assets/projects/motion/nifty-landscape.mp4", import.meta.url)),
     access(new URL("../public/assets/projects/motion/nifty-landscape.jpg", import.meta.url)),

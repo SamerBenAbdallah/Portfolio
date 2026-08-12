@@ -28,11 +28,9 @@ export const portfolioData = {
       tools: ["Illustrator", "Photoshop"],
       deliverables: ["Identity System", "20-Card Deck", "Packaging & Merchandise"],
       thumbnail: "/assets/projects/graphic/khanfes-cover.webp",
+      longform: true,
       images: [
-        { src: "/assets/projects/graphic/khanfes-cover.webp", alt: "Khanfes Danfes game concept, logo, and color system" },
-        { src: "/assets/projects/graphic/khanfes-card-system.webp", alt: "Khanfes Danfes illustrated card collection and card back system" },
-        { src: "/assets/projects/graphic/khanfes-applications.webp", alt: "Khanfes Danfes stickers, cap, and card packaging applications" },
-        { src: "/assets/projects/graphic/khanfes-brochure.webp", alt: "Khanfes Danfes game brochure and final presentation" },
+        { src: "/assets/projects/graphic/khanfes-full-project.webp", alt: "The complete Khanfes Danfes identity, card system, packaging, merchandise, and brochure case study" },
       ],
       accent: "#ff2fdd",
       secondary: "#1717ff",
