@@ -230,7 +230,7 @@ function ArcadeStage({
   }, []);
 
   return (
-    <main className="about-level" id="about" aria-labelledby="about-heading">
+    <main className="about-level" aria-labelledby="about-heading">
       <nav className="game-nav" aria-label="Portfolio sections">
         <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About"><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
         <div className="nav-links">
@@ -261,7 +261,7 @@ function ArcadeStage({
         </div>
       </nav>
 
-      <section className="about-shell">
+      <section className="about-shell" id="about">
         <div className="level-kicker"><span>LEVEL 01</span><i /><small>PLAYER PROFILE</small></div>
 
         <div className="about-grid">
@@ -552,7 +552,7 @@ function AboutSection() {
       </section>
 
       <footer className="game-footer" id="finish"><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div></footer>
-      <button className="back-to-top" type="button" onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })} aria-label="Back to top">
+      <button className="back-to-top" type="button" onClick={() => { visitSection(0); window.history.replaceState(null, "", "#about"); document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }); }} aria-label="Back to top">
         <span aria-hidden="true">↑</span><small>TOP</small>
       </button>
       {selectedProject && <ProjectModal project={selectedProject} onClose={closeProject} />}
