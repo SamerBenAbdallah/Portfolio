@@ -53,8 +53,8 @@ test("ships the complete production artwork and interaction source", async () =>
 
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
-  assert.match(component, /PIXEL DRIFT/);
-  assert.match(component, /scheduleChord/);
+  assert.match(component, /ARCADE RUN/);
+  assert.match(component, /const arpeggio/);
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
@@ -85,6 +85,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
+  assert.match(styles, /img\.motion-poster[^}]+object-fit: contain/s);
+  assert.match(styles, /\.case-playlist img[^}]+object-fit: contain/s);
   assert.match(styles, /\.level-heading h2[^}]+font-weight: 900/s);
   assert.match(styles, /\.project-copy h3, \.motion-copy h3[^}]+font-weight: 600/s);
   assert.doesNotMatch(styles, /\.arcade-marquee/);

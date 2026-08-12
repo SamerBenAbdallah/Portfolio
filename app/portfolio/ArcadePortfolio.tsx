@@ -30,9 +30,9 @@ type SelectedProject = {
   videos?: readonly { title: string; src: string; poster: string; duration: string }[];
 };
 
-const melody = [76, null, null, 79, null, 81, null, null, 74, null, 76, null, 71, null, 74, null] as const;
-const bass = [40, 40, 36, 36, 43, 43, 38, 38] as const;
-const chords = [[52, 55, 59, 64], [48, 52, 55, 59], [55, 59, 62, 67], [50, 54, 57, 62]] as const;
+const melody = [76, 79, 83, 81, 79, 76, 74, 76, 79, 81, 86, 83, 81, 79, 76, 74, 76, null, 79, 81, 83, 81, 79, null, 74, 76, 79, 76, 71, 74, 76, null] as const;
+const bass = [40, 40, 43, 43, 36, 36, 38, 38] as const;
+const arpeggio = [[52, 55, 59, 64], [48, 52, 55, 59], [55, 59, 62, 67], [50, 54, 57, 62]] as const;
 
 function midiToHz(note: number) {
   return 440 * 2 ** ((note - 69) / 12);
@@ -71,31 +71,12 @@ function scheduleHat(context: AudioContext, destination: AudioNode, time: number
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = "square";
-  oscillator.frequency.setValueAtTime(3100, time);
-  gain.gain.setValueAtTime(0.006, time);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.035);
+  oscillator.frequency.setValueAtTime(3900, time);
+  gain.gain.setValueAtTime(0.011, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.028);
   oscillator.connect(gain).connect(destination);
   oscillator.start(time);
   oscillator.stop(time + 0.03);
-}
-
-function scheduleChord(context: AudioContext, destination: AudioNode, notes: readonly number[], time: number, duration: number) {
-  notes.forEach((note, index) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const filter = context.createBiquadFilter();
-    oscillator.type = index % 2 === 0 ? "triangle" : "sine";
-    oscillator.frequency.setValueAtTime(midiToHz(note), time);
-    oscillator.detune.setValueAtTime(index * 2 - 3, time);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(780, time);
-    gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(0.012, time + 0.18);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-    oscillator.connect(filter).connect(gain).connect(destination);
-    oscillator.start(time);
-    oscillator.stop(time + duration + 0.08);
-  });
 }
 
 function scheduleSnare(context: AudioContext, destination: AudioNode, time: number) {
@@ -119,9 +100,9 @@ function createArcadeMusic(): MusicEngine {
   const context = new AudioContextClass();
   const master = context.createGain();
   const compressor = context.createDynamicsCompressor();
-  master.gain.setValueAtTime(0.19, context.currentTime);
-  compressor.threshold.setValueAtTime(-20, context.currentTime);
-  compressor.ratio.setValueAtTime(3, context.currentTime);
+  master.gain.setValueAtTime(0.2, context.currentTime);
+  compressor.threshold.setValueAtTime(-18, context.currentTime);
+  compressor.ratio.setValueAtTime(4, context.currentTime);
   master.connect(compressor).connect(context.destination);
 
   const engine: MusicEngine = {
@@ -132,18 +113,20 @@ function createArcadeMusic(): MusicEngine {
     step: 0,
     active: true,
   };
-  const stepDuration = 60 / 82 / 2;
+  const stepDuration = 60 / 116 / 4;
 
   const scheduler = () => {
     while (engine.active && engine.nextNoteTime < context.currentTime + 0.14) {
       const index = engine.step % melody.length;
       const melodyNote = melody[index];
-      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.5, 0.026, "square");
-      if (index % 4 === 0) scheduleTone(context, master, bass[(engine.step / 4) % bass.length], engine.nextNoteTime, stepDuration * 3.5, 0.04, "triangle");
-      if (index === 0) scheduleChord(context, master, chords[Math.floor(engine.step / 16) % chords.length], engine.nextNoteTime, stepDuration * 15.5);
-      if (index === 0 || index === 10) scheduleKick(context, master, engine.nextNoteTime);
-      if (index === 4 || index === 12) scheduleSnare(context, master, engine.nextNoteTime);
-      if (index % 4 === 2) scheduleHat(context, master, engine.nextNoteTime);
+      const chord = arpeggio[Math.floor(engine.step / 32) % arpeggio.length];
+      const arpNote = chord[index % chord.length];
+      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.55, 0.036, "square");
+      if (index % 2 === 0) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.8, 0.013, "triangle");
+      if (index % 8 === 0) scheduleTone(context, master, bass[(engine.step / 8) % bass.length], engine.nextNoteTime, stepDuration * 6.8, 0.045, "triangle");
+      if (index % 16 === 0 || index % 16 === 10) scheduleKick(context, master, engine.nextNoteTime);
+      if (index % 16 === 4 || index % 16 === 12) scheduleSnare(context, master, engine.nextNoteTime);
+      if (index % 2 === 0) scheduleHat(context, master, engine.nextNoteTime);
       engine.nextNoteTime += stepDuration;
       engine.step += 1;
     }
@@ -691,7 +674,7 @@ export function ArcadePortfolio() {
 
       <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
         <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
-        <span><small>PIXEL DRIFT</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
+        <span><small>ARCADE RUN</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
       </button>
     </div>
   );
