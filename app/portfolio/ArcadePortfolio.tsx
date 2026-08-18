@@ -530,7 +530,7 @@ function AboutSection() {
           <div className="project-grid">
             {data.graphicProjects.map((project, index) => (
               <article className={`project-card card-${(index % 3) + 1}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
-                <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></div>
+                <button className="project-art" type="button" aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></button>
                 <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
               </article>
             ))}
@@ -545,7 +545,7 @@ function AboutSection() {
           <div className="motion-grid">
             {data.motionProjects.map((project) => (
               <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
-                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos.length} PROJECTS`}</strong></div>
+                <button className="motion-screen" type="button" aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos.length} PROJECTS`}</strong></button>
                 <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
               </article>
             ))}
