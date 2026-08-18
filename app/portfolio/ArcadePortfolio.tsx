@@ -405,7 +405,7 @@ function AboutSection() {
   const heartTargetRef = useRef(0);
   const heartAnimationActive = useRef(false);
   const heartBreakTimer = useRef<number | null>(null);
-  const heartCount = Math.min(5, heartLevel + 1);
+  const heartCount = Math.min(4, heartLevel + 1);
 
   function animateHeartLevel() {
     const current = heartLevelRef.current;
@@ -439,7 +439,7 @@ function AboutSection() {
   }
 
   const queueHeartLevel = (target: number) => {
-    heartTargetRef.current = target;
+    heartTargetRef.current = Math.min(3, target);
     if (!heartAnimationActive.current) animateHeartLevel();
   };
 
@@ -531,8 +531,8 @@ function AboutSection() {
         <button className="mobile-nav-toggle" type="button" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen((current) => !current)}>
           <i /><i /><i /><span className="sr-only">Toggle section navigation</span>
         </button>
-        <div className="lives" aria-label={`${heartCount} of 5 hearts unlocked`}>
-          {Array.from({ length: 5 }, (_, index) => {
+        <div className="lives" aria-label={`${heartCount} of 4 hearts unlocked`}>
+          {Array.from({ length: 4 }, (_, index) => {
             const filled = index < heartCount;
             const breaking = breakingHeart === index;
             return (
