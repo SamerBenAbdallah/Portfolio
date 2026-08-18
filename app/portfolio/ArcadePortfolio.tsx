@@ -581,6 +581,7 @@ function AboutSection() {
 
 export function ArcadePortfolio() {
   const root = useRef<HTMLDivElement>(null);
+  const cursor = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [countdown, setCountdown] = useState("");
@@ -607,6 +608,41 @@ export function ArcadePortfolio() {
     window.setTimeout(() => void engine.context.close(), 220);
     musicRef.current = null;
   };
+
+  useEffect(() => {
+    const cursorElement = cursor.current;
+    const finePointer = window.matchMedia("(pointer: fine)");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!cursorElement || !finePointer.matches || reducedMotion.matches) return;
+
+    const moveCursor = (event: PointerEvent) => {
+      const cursorSize = 32;
+      const x = Math.min(window.innerWidth - cursorSize - 2, Math.max(2, event.clientX - 12));
+      const y = Math.min(window.innerHeight - cursorSize - 2, Math.max(2, event.clientY - 6));
+      cursorElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      cursorElement.classList.add("is-visible");
+      const target = event.target;
+      cursorElement.classList.toggle(
+        "is-targeting",
+        target instanceof Element && Boolean(target.closest("a, button, input, textarea, select, [role='button']")),
+      );
+    };
+    const pressCursor = () => cursorElement.classList.add("is-clicking");
+    const releaseCursor = () => cursorElement.classList.remove("is-clicking");
+    const hideCursor = () => cursorElement.classList.remove("is-visible", "is-targeting", "is-clicking");
+
+    window.addEventListener("pointermove", moveCursor, { passive: true });
+    window.addEventListener("pointerdown", pressCursor);
+    window.addEventListener("pointerup", releaseCursor);
+    document.documentElement.addEventListener("mouseleave", hideCursor);
+
+    return () => {
+      window.removeEventListener("pointermove", moveCursor);
+      window.removeEventListener("pointerdown", pressCursor);
+      window.removeEventListener("pointerup", releaseCursor);
+      document.documentElement.removeEventListener("mouseleave", hideCursor);
+    };
+  }, []);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -691,6 +727,10 @@ export function ArcadePortfolio() {
 
   return (
     <div className="portfolio-root" ref={root}>
+      <div className="arcade-cursor" ref={cursor} aria-hidden="true">
+        <span className="arcade-cursor-ping" />
+        <img className="arcade-joystick" src="/assets/arcade/icons/joystick-cursor.png" alt="" />
+      </div>
       <section className="intro-screen" aria-label="Portfolio intro">
         <img className="intro-background" src="/assets/arcade/v2/hero-scene-v2.png" alt="" />
         <div className="intro-content">

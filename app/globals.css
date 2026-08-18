@@ -25,6 +25,74 @@ img { max-width: 100%; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 .portfolio-root { min-height: 100vh; background: var(--ink); }
 
+.arcade-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(-100px, -100px, 0);
+  transition: opacity .12s ease;
+  will-change: transform;
+}
+
+.arcade-cursor.is-visible { opacity: 1; }
+
+.arcade-joystick {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  left: 50%;
+  top: 50%;
+  width: 116px;
+  height: 116px;
+  max-width: none;
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  transform-origin: 50% 50%;
+  filter: drop-shadow(3px 4px 0 #02020c) drop-shadow(0 0 5px rgba(31, 231, 255, .55));
+  transition: transform .12s steps(2, end), filter .12s ease;
+}
+
+.arcade-cursor.is-targeting .arcade-joystick {
+  transform: translate(-50%, -50%) rotate(-8deg) scale(1.18);
+  filter: drop-shadow(3px 4px 0 #02020c) drop-shadow(0 0 9px var(--yellow));
+}
+
+.arcade-cursor.is-clicking .arcade-joystick {
+  transform: translate(-50%, -50%) rotate(-8deg) scale(.84);
+  filter: drop-shadow(2px 2px 0 #02020c) drop-shadow(0 0 12px var(--pink));
+}
+
+.arcade-cursor-ping {
+  position: absolute;
+  z-index: 1;
+  left: 47%;
+  top: 12%;
+  width: 9px;
+  height: 9px;
+  border: 3px solid var(--yellow);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.arcade-cursor.is-clicking .arcade-cursor-ping {
+  animation: cursor-ping .38s steps(4, end) both;
+}
+
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .portfolio-root,
+  .portfolio-root * { cursor: none !important; }
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .arcade-cursor { display: none; }
+}
+
 .intro-screen,
 .arcade-stage { position: fixed; inset: 0; min-height: 100svh; overflow: hidden; background: var(--ink); }
 .intro-screen { z-index: 10; display: grid; place-items: center; }
@@ -253,6 +321,10 @@ img { max-width: 100%; }
 .case-data-grid { display: grid; gap: 9px; margin-top: 15px; }.case-data-grid div { padding: 12px 13px 11px; display: grid; gap: 6px; border-left: 3px solid var(--project-accent); background: #070b2d; }.case-data-grid span { color: #7483bb; font-size: .42rem; letter-spacing: .12em; }.case-data-grid strong { color: white; font-size: .57rem; line-height: 1.45; }.case-complete { margin-top: 20px; color: var(--cyan); font-size: .5rem; font-weight: 900; letter-spacing: .1em; }.case-complete span { color: #37f0a1; }
 
 @keyframes blink { 0%, 64% { opacity: 1; } 65%, 100% { opacity: .28; } }
+@keyframes cursor-ping {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.35) rotate(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(3.1) rotate(90deg); }
+}
 @keyframes heart-gain {
   0% { opacity: .15; transform: scale(.25) rotate(-16deg); filter: brightness(1); }
   42% { opacity: 1; color: var(--yellow); transform: scale(1.58) rotate(8deg); filter: brightness(1.9) drop-shadow(0 0 10px var(--yellow)); }
