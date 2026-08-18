@@ -394,26 +394,61 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
 
 function AboutSection() {
   const [activeSection, setActiveSection] = useState(0);
-  const [breakingHearts, setBreakingHearts] = useState<readonly number[]>([]);
+  const [heartLevel, setHeartLevel] = useState(0);
+  const [breakingHeart, setBreakingHeart] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
   const [contactStatus, setContactStatus] = useState("");
   const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
   const activeSectionRef = useRef(0);
+  const heartLevelRef = useRef(0);
+  const heartTargetRef = useRef(0);
+  const heartAnimationActive = useRef(false);
   const heartBreakTimer = useRef<number | null>(null);
-  const heartCount = Math.min(5, activeSection + 1);
+  const heartCount = Math.min(5, heartLevel + 1);
+
+  function animateHeartLevel() {
+    const current = heartLevelRef.current;
+    const target = heartTargetRef.current;
+
+    if (current === target) {
+      heartAnimationActive.current = false;
+      heartBreakTimer.current = null;
+      setBreakingHeart(null);
+      return;
+    }
+
+    heartAnimationActive.current = true;
+    if (current < target) {
+      const next = current + 1;
+      heartLevelRef.current = next;
+      setHeartLevel(next);
+      setBreakingHeart(null);
+      heartBreakTimer.current = window.setTimeout(animateHeartLevel, 760);
+      return;
+    }
+
+    setBreakingHeart(current);
+    heartBreakTimer.current = window.setTimeout(() => {
+      const next = Math.max(0, heartLevelRef.current - 1);
+      heartLevelRef.current = next;
+      setHeartLevel(next);
+      setBreakingHeart(null);
+      heartBreakTimer.current = window.setTimeout(animateHeartLevel, 120);
+    }, 820);
+  }
+
+  const queueHeartLevel = (target: number) => {
+    heartTargetRef.current = target;
+    if (!heartAnimationActive.current) animateHeartLevel();
+  };
 
   const visitSection = (index: number) => {
-    const previousSection = activeSectionRef.current;
-    if (index < previousSection) {
-      setBreakingHearts(Array.from({ length: previousSection - index }, (_, offset) => index + offset + 1));
-      if (heartBreakTimer.current !== null) window.clearTimeout(heartBreakTimer.current);
-      heartBreakTimer.current = window.setTimeout(() => setBreakingHearts([]), 820);
-    } else if (index > previousSection) {
-      setBreakingHearts([]);
+    if (index !== activeSectionRef.current) {
+      activeSectionRef.current = index;
+      setActiveSection(index);
+      queueHeartLevel(index);
     }
-    activeSectionRef.current = index;
-    setActiveSection(index);
     setMobileMenuOpen(false);
   };
 
@@ -429,36 +464,37 @@ function AboutSection() {
 
   useEffect(() => {
     const sectionIds = ["about", "work", "motion", "contact", "finish"];
+    let scrollFrame = 0;
     const syncSectionFromHash = () => {
       const index = sectionIds.indexOf(window.location.hash.slice(1));
       if (index >= 0) visitSection(index);
     };
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const index = sectionIds.indexOf(entry.target.id);
-        if (index >= 0) visitSection(index);
+    const syncSectionFromScroll = () => {
+      if (scrollFrame) return;
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = 0;
+        const anchor = window.innerHeight * 0.38;
+        let nextSection = 0;
+        sectionIds.forEach((id, index) => {
+          const section = document.getElementById(id);
+          if (section && section.getBoundingClientRect().top <= anchor) nextSection = index;
+        });
+        if (window.scrollY <= 8) nextSection = 0;
+        visitSection(nextSection);
       });
-    }, { rootMargin: "-20% 0px -20% 0px", threshold: 0.01 });
-    const unlockGameComplete = () => {
-      const footer = document.getElementById("finish");
-      if (!footer) return;
-      const bounds = footer.getBoundingClientRect();
-      if (bounds.top < window.innerHeight * 0.92 && bounds.bottom > 0) visitSection(4);
     };
 
-    sectionIds.forEach((id) => {
-      const section = document.getElementById(id);
-      if (section) observer.observe(section);
-    });
     syncSectionFromHash();
+    syncSectionFromScroll();
     window.addEventListener("hashchange", syncSectionFromHash);
-    window.addEventListener("scroll", unlockGameComplete, { passive: true });
+    window.addEventListener("scroll", syncSectionFromScroll, { passive: true });
+    window.addEventListener("resize", syncSectionFromScroll);
     return () => {
-      observer.disconnect();
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       if (heartBreakTimer.current !== null) window.clearTimeout(heartBreakTimer.current);
       window.removeEventListener("hashchange", syncSectionFromHash);
-      window.removeEventListener("scroll", unlockGameComplete);
+      window.removeEventListener("scroll", syncSectionFromScroll);
+      window.removeEventListener("resize", syncSectionFromScroll);
     };
   }, []);
 
@@ -484,7 +520,7 @@ function AboutSection() {
   };
 
   return (
-    <main className="about-level" id="about" aria-labelledby="about-heading">
+    <main className="about-level" aria-labelledby="about-heading">
       <nav className="game-nav" aria-label="Portfolio sections">
         <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About" onClick={() => visitSection(0)}><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
         <div className={`nav-links ${mobileMenuOpen ? "is-open" : ""}`}>
@@ -498,9 +534,9 @@ function AboutSection() {
         <div className="lives" aria-label={`${heartCount} of 5 hearts unlocked`}>
           {Array.from({ length: 5 }, (_, index) => {
             const filled = index < heartCount;
-            const breaking = breakingHearts.includes(index);
+            const breaking = breakingHeart === index;
             return (
-              <span key={`${index}-${filled}-${breaking}`} className={`heart ${filled ? "filled" : breaking ? "breaking" : "empty"}`} aria-hidden="true">
+              <span key={`${index}-${filled}-${breaking}`} className={`heart ${breaking ? "breaking" : filled ? "filled" : "empty"}`} aria-hidden="true">
                 {filled || breaking ? "♥" : "♡"}
                 {breaking && <span className="heart-shards"><i /><i /><i /><i /></span>}
               </span>
@@ -509,7 +545,7 @@ function AboutSection() {
         </div>
       </nav>
 
-      <section className="about-shell">
+      <section className="about-shell" id="about">
         <div className="level-kicker"><span>LEVEL 01</span><i /><small>PLAYER PROFILE</small></div>
         <div className="about-grid">
           <figure className="profile-panel"><img src={data.profileImage} alt="Pixel-art portrait of Samer Ben Abdallah" /><figcaption>SAMER BEN ABDALLAH // GRAPHIC &amp; MOTION DESIGNER</figcaption></figure>
