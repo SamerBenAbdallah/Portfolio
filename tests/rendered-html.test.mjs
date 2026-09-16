@@ -59,6 +59,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
+  assert.match(component, /fetchPriority="high"/);
+  assert.match(component, /filter: reduced \? "blur\(0px\)" : "blur\(18px\)"/);
   assert.doesNotMatch(component, /className="intro-screen"/);
   assert.doesNotMatch(component, /hero-scene-v2\.png|portfolio-title-v2\.png/);
   assert.doesNotMatch(component, /className="intro-player"/);
@@ -99,12 +101,14 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.motion-card:hover[^}]+cartridge-float \.95s/s);
   assert.match(styles, /\.motion-grid[^}]+repeat\(3, minmax\(0, 1fr\)\)/s);
   assert.match(styles, /\.arcade-stage[^}]+opacity: 0[^}]+visibility: hidden/s);
+  assert.match(styles, /\.arcade-artboard[^}]+top: 0[^}]+177\.68vh[^}]+56\.28vw/s);
   assert.match(styles, /\.about-level[^}]+display: none[^}]+visibility: hidden[^}]+opacity: 0/s);
   assert.match(styles, /\.music-toggle[^}]+opacity: 0[^}]+visibility: hidden/s);
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
   assert.match(styles, /\.machine-screen[^}]+left: 31\.55%[^}]+top: 35\.85%/s);
+  assert.match(styles, /\.machine-screen[^}]+height: 39\.35%[^}]+mask-image: linear-gradient/s);
   assert.match(styles, /\.screen-pac-dots/);
   assert.match(styles, /img\.motion-poster[^}]+object-fit: contain/s);
   assert.match(styles, /\.case-playlist img[^}]+object-fit: contain/s);

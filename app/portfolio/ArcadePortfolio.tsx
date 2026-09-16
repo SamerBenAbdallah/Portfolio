@@ -158,6 +158,8 @@ function ArcadeStage({
           className="arcade-room-art"
           src="/assets/arcade/v2/arcade-room-v2.png"
           alt="A glowing red Pac-Man-inspired arcade cabinet surrounded by colorful pixel ghosts"
+          fetchPriority="high"
+          draggable={false}
         />
 
         <div className="removed-marquee" aria-hidden="true" hidden>
@@ -689,12 +691,16 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
     document.body.style.overflow = "hidden";
 
     const ctx = gsap.context(() => {
-      gsap.set(".arcade-artboard", { y: reduced ? 15 : "105vh", scale: reduced ? 1 : 0.9 });
+      gsap.set(".arcade-artboard", {
+        y: reduced ? 15 : "105vh",
+        scale: reduced ? 1 : 0.9,
+        filter: reduced ? "blur(0px)" : "blur(18px)",
+      });
       gsap.set(".arcade-stage", { autoAlpha: 1 });
       gsap.set(".about-level", { autoAlpha: 0, display: "none" });
 
       gsap.timeline({ defaults: { ease: "power3.out" } })
-        .to(".arcade-artboard", { y: 0, scale: 1, duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, reduced ? 0 : 0.12)
+        .to(".arcade-artboard", { y: 0, scale: 1, filter: "blur(0px)", duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, reduced ? 0 : 0.12)
         .fromTo(".machine-screen", { filter: "brightness(2.6)", autoAlpha: 0 }, { filter: "brightness(1)", autoAlpha: 1, duration: 0.4 }, "-=0.2")
         .fromTo(".start-hint, .music-toggle", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
     }, root);
