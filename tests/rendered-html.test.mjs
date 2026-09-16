@@ -66,6 +66,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /screen-pac-dots/);
   assert.match(component, /cartridge-vents/);
   assert.match(component, /cartridge-contacts/);
+  assert.match(component, /motion-card.*?cartridge-vents.*?motion-screen.*?cartridge-contacts/s);
   assert.match(component, /PLAYER 1 \/\/ INSERT COIN/);
   assert.match(component, /Pac-Man-inspired arcade cabinet/);
   assert.doesNotMatch(component, /className="press-line"/);
@@ -94,6 +95,9 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /@keyframes heart-ring/);
   assert.match(styles, /\.project-grid/);
   assert.match(styles, /@keyframes cartridge-float/);
+  assert.match(styles, /\.project-card:hover[^}]+cartridge-float \.95s/s);
+  assert.match(styles, /\.motion-card:hover[^}]+cartridge-float \.95s/s);
+  assert.match(styles, /\.motion-grid[^}]+repeat\(3, minmax\(0, 1fr\)\)/s);
   assert.match(styles, /\.arcade-stage[^}]+opacity: 0[^}]+visibility: hidden/s);
   assert.match(styles, /\.about-level[^}]+display: none[^}]+visibility: hidden[^}]+opacity: 0/s);
   assert.match(styles, /\.music-toggle[^}]+opacity: 0[^}]+visibility: hidden/s);

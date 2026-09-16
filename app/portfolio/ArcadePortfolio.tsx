@@ -582,8 +582,10 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
           <div className="motion-grid">
             {motionProjects.map((project) => (
               <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+                <span className="cartridge-vents" aria-hidden="true" />
                 <button className="motion-screen" type="button" aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong></button>
                 <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
+                <span className="cartridge-contacts" aria-hidden="true" />
               </article>
             ))}
             {!motionProjects.length && <p className="arcade-empty-state">NO MOTION CASE FILES PUBLISHED // CHECK BACK SOON</p>}
