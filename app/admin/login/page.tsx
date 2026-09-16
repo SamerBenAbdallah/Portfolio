@@ -17,7 +17,7 @@ export default async function AdminLoginPage() {
     <main className="admin-auth">
       <section className="admin-auth-card">
         <h1>Portfolio CMS</h1>
-        <p>Enter your administrator email and we&apos;ll send you a secure one-time sign-in link.</p>
+        <p>Sign in with your administrator email and password to manage the portfolio.</p>
         <LoginForm />
         <Link href="/">← Return to portfolio</Link>
       </section>

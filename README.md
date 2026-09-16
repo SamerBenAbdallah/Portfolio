@@ -49,7 +49,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-7. Restart `pnpm dev`, then request a one-time email sign-in link at [http://localhost:3000/admin](http://localhost:3000/admin).
+7. Create or update the allowlisted Supabase administrator with a secure password, restart `pnpm dev`, then sign in at [http://localhost:3000/admin](http://localhost:3000/admin).
 
 The browser-visible anon key is expected. Authorization is enforced by Row Level Security. Never add a Supabase service-role key to this repository or any `NEXT_PUBLIC_` variable.
 
