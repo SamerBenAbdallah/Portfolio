@@ -61,13 +61,13 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.doesNotMatch(component, /className="intro-player"/);
   assert.match(component, /className="start-line"/);
   assert.doesNotMatch(component, /className="press-line"/);
-  assert.match(component, /Array\.from\(\{ length: 5 \}/);
-  assert.match(component, /activeSection \+ 1/);
+  assert.match(component, /Array\.from\(\{ length: 4 \}/);
+  assert.match(component, /heartTargetRef\.current = Math\.min\(3, target\)/);
   assert.match(component, /className="heart-shards"/);
   assert.match(styles, /@keyframes heart-break/);
   assert.match(component, /const loopSteps = 224/);
   assert.match(component, /className="back-to-top"/);
-  assert.match(component, /IntersectionObserver/);
+  assert.match(component, /addEventListener\("scroll"/);
   assert.match(component, /role="dialog"/);
   assert.match(component, /className="case-media-video"/);
   assert.match(component, /className="case-playlist"/);
@@ -95,6 +95,20 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.doesNotMatch(styles, /\.arcade-marquee/);
   assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
   assert.match(layout, /og-v3\.png/);
+
+  const [migration, repository, admin, projectPage] = await Promise.all([
+    readFile(new URL("../supabase/migrations/202609160001_portfolio_cms.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/projects/repository.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/projects/[slug]/page.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(migration, /enable row level security/i);
+  assert.match(migration, /Public can read published projects/);
+  assert.match(migration, /project-media/);
+  assert.match(repository, /\.eq\("published", true\)/);
+  assert.match(repository, /\.order\("display_order"/);
+  assert.match(admin, /Permanently delete/);
+  assert.match(projectPage, /getPublishedProjectBySlug/);
 
   await Promise.all([
     access(new URL("../public/assets/arcade/v2/hero-scene-v2.png", import.meta.url)),

@@ -3,6 +3,7 @@
 import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { portfolioData as data } from "../data/portfolio";
+import type { ArcadeProject } from "../lib/projects/types";
 
 type MusicEngine = {
   context: AudioContext;
@@ -11,23 +12,6 @@ type MusicEngine = {
   nextNoteTime: number;
   step: number;
   active: boolean;
-};
-
-type SelectedProject = {
-  kind: "graphic" | "motion";
-  title: string;
-  category: string;
-  description: string;
-  tools: readonly string[];
-  deliverables: readonly string[];
-  accent: string;
-  secondary: string;
-  duration?: string;
-  thumbnail?: string;
-  poster?: string;
-  longform?: boolean;
-  images?: readonly { src: string; alt: string }[];
-  videos?: readonly { title: string; src: string; poster: string; duration: string }[];
 };
 
 const melodyBars = [
@@ -314,7 +298,7 @@ function ArcadeStage({
   );
 */
 
-function ProjectModal({ project, onClose }: { project: SelectedProject; onClose: () => void }) {
+function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: () => void }) {
   const closeButton = useRef<HTMLButtonElement>(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const selectedImage = project.images?.[activeMedia];
@@ -351,6 +335,8 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
               <img className="case-media-image" src={selectedImage.src} alt={selectedImage.alt} />
             )}
             {project.kind === "motion" && selectedVideo && (
+              // The portfolio media may be visual-only and no caption file is stored for legacy clips.
+              // eslint-disable-next-line jsx-a11y/media-has-caption
               <video className="case-media-video" key={selectedVideo.src} controls playsInline preload="metadata" poster={selectedVideo.poster}>
                 <source src={selectedVideo.src} type="video/mp4" />
                 Your browser does not support embedded video.
@@ -385,6 +371,7 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
             {project.duration && <div><span>DURATION</span><strong>{project.duration}</strong></div>}
             <div><span>OUTPUT</span><strong>{project.deliverables.join(" / ")}</strong></div>
           </div>
+          <a className="case-page-link" href={`/projects/${project.slug}`}>OPEN FULL CASE FILE <span>↗</span></a>
           <div className="case-complete"><span>✓</span> REAL PROJECT MEDIA LOADED</div>
         </div>
       </article>
@@ -392,12 +379,12 @@ function ProjectModal({ project, onClose }: { project: SelectedProject; onClose:
   );
 }
 
-function AboutSection() {
+function AboutSection({ projects }: { projects: ArcadeProject[] }) {
   const [activeSection, setActiveSection] = useState(0);
   const [heartLevel, setHeartLevel] = useState(0);
   const [breakingHeart, setBreakingHeart] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ArcadeProject | null>(null);
   const [contactStatus, setContactStatus] = useState("");
   const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
   const activeSectionRef = useRef(0);
@@ -406,6 +393,8 @@ function AboutSection() {
   const heartAnimationActive = useRef(false);
   const heartBreakTimer = useRef<number | null>(null);
   const heartCount = Math.min(4, heartLevel + 1);
+  const graphicProjects = projects.filter((project) => project.kind === "graphic");
+  const motionProjects = projects.filter((project) => project.kind === "motion");
 
   function animateHeartLevel() {
     const current = heartLevelRef.current;
@@ -452,7 +441,7 @@ function AboutSection() {
     setMobileMenuOpen(false);
   };
 
-  const openProject = (project: SelectedProject, trigger: HTMLButtonElement) => {
+  const openProject = (project: ArcadeProject, trigger: HTMLButtonElement) => {
     lastProjectTrigger.current = trigger;
     setSelectedProject(project);
   };
@@ -564,12 +553,13 @@ function AboutSection() {
           <div className="level-kicker"><span>LEVEL 02</span><i /><small>DESIGN ARCHIVE</small></div>
           <header className="level-heading"><p>SELECT A CASE FILE</p><h2 id="work-heading"><span>GRAPHIC</span> DESIGN</h2><p className="level-intro">Identity systems, campaigns, and visual tools built to make ideas recognizable at every size.</p></header>
           <div className="project-grid">
-            {data.graphicProjects.map((project, index) => (
-              <article className={`project-card card-${(index % 3) + 1}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+            {graphicProjects.map((project, index) => (
+              <article className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
                 <button className="project-art" type="button" aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></button>
                 <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
               </article>
             ))}
+            {!graphicProjects.length && <p className="arcade-empty-state">NO GRAPHIC CASE FILES PUBLISHED // CHECK BACK SOON</p>}
           </div>
         </div>
       </section>
@@ -579,12 +569,13 @@ function AboutSection() {
           <div className="level-kicker"><span>LEVEL 03</span><i /><small>MOTION LAB</small></div>
           <header className="level-heading"><p>PRESS PLAY</p><h2 id="motion-heading"><span>MOTION</span> DESIGN</h2><p className="level-intro">Motion systems where timing, type, sound, and transitions turn static ideas into memorable stories.</p></header>
           <div className="motion-grid">
-            {data.motionProjects.map((project) => (
-              <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.title} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
-                <button className="motion-screen" type="button" aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos.length} PROJECTS`}</strong></button>
+            {motionProjects.map((project) => (
+              <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+                <button className="motion-screen" type="button" aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong></button>
                 <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
               </article>
             ))}
+            {!motionProjects.length && <p className="arcade-empty-state">NO MOTION CASE FILES PUBLISHED // CHECK BACK SOON</p>}
           </div>
         </div>
       </section>
@@ -615,7 +606,7 @@ function AboutSection() {
   );
 }
 
-export function ArcadePortfolio() {
+export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   const root = useRef<HTMLDivElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -784,7 +775,7 @@ export function ArcadePortfolio() {
         onStart={startGame}
       />
 
-      <AboutSection />
+      <AboutSection projects={projects} />
 
       <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
         <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>

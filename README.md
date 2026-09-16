@@ -1,100 +1,86 @@
-# vinext-starter
+# Player01 — Arcade Portfolio + Supabase CMS
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Samer Ben Abdallah's existing interactive arcade portfolio, now prepared for database-driven project management with Supabase. The original intro, cabinet, music, animations, project grids, modal previews, navigation, responsive layout, and pixel-art visual system remain intact.
 
-## Prerequisites
+## What changed
 
-- Node.js `>=22.13.0`
+- Public projects load from Supabase when it is configured.
+- Only rows with `published = true` are public, ordered by `display_order`.
+- The preserved local project catalog remains an automatic fallback when Supabase is not configured or temporarily unavailable.
+- Every published project has a dynamic route at `/projects/[slug]`.
+- `/admin` provides authenticated create, edit, delete, publish, feature, reorder, and media-upload controls.
+- Uploads use the public `project-media` bucket with admin-only write policies.
+- Replaced/deleted Supabase media is cleaned up by the admin API when it is no longer referenced by that project.
 
-## Quick Start
+## Local development
+
+Requirements: Node.js 22.13 or newer and pnpm.
 
 ```bash
-npm install
-npm run dev
-npm run build
+pnpm install
+cp .env.example .env.local
+pnpm dev
 ```
 
-This starter does not use `wrangler.jsonc`.
+Without environment values, the public portfolio still runs from `app/data/portfolio.ts`; `/admin` shows a setup guide.
 
-## Included Shape
+## Supabase setup
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+1. Create a Supabase project.
+2. Open **SQL Editor** and run [`supabase/migrations/202609160001_portfolio_cms.sql`](supabase/migrations/202609160001_portfolio_cms.sql). This creates:
+   - `projects`
+   - `admin_users`
+   - Row Level Security policies
+   - `project-media` Storage bucket and policies
+3. Run [`supabase/seed.sql`](supabase/seed.sql) to import the current 11 graphic and motion project groups in their existing order.
+4. In **Authentication → Users**, create the private email/password user that will manage the portfolio. Disable public sign-ups unless you intentionally need them.
+5. Copy that user's UUID and run:
 
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```sql
+insert into public.admin_users (user_id)
+values ('YOUR_AUTH_USER_UUID');
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+6. In **Project Settings → API**, copy the project URL and publishable/anon key into `.env.local`:
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+7. Restart `pnpm dev`, then sign in at [http://localhost:3000/admin](http://localhost:3000/admin).
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+The browser-visible anon key is expected. Authorization is enforced by Row Level Security. Never add a Supabase service-role key to this repository or any `NEXT_PUBLIC_` variable.
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## Vercel
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+Add the same two environment variables to the Vercel project for Production, Preview, and Development. Redeploy after saving them. No service-role secret is required.
 
-## Useful Commands
+## Project model
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+The schema contains all requested fields plus a few presentation fields needed to preserve the existing site:
 
-## Learn More
+- Requested: title, slug, descriptions, category, cover, gallery, video URL, Behance/external links, tools, year, client, featured, published, ordering, and timestamps.
+- Compatibility: `project_type`, `video_items`, `deliverables`, `accent`, `secondary`, and `longform` preserve the current graphic/motion layouts, grouped playlists, card colors, and long scrolling Khanfes Danfes case study.
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+New uploads are stored in Supabase Storage. Seeded media initially uses the existing repository URLs so the migration is non-destructive; replace any seeded media from `/admin` whenever you want it moved into Supabase Storage.
+
+## Commands
+
+```bash
+pnpm dev             # local development
+pnpm build           # vinext/Cloudflare-compatible build
+pnpm vercel-build    # production Next.js build used by Vercel
+pnpm lint            # ESLint
+pnpm test            # build and rendered-output checks
+```
+
+## Relevant files
+
+- `app/lib/projects/` — project types, mapping, queries, and admin authorization
+- `app/lib/supabase/` — browser/server Supabase clients
+- `app/admin/` — private CMS UI
+- `app/api/admin/projects/route.ts` — authenticated CRUD and media cleanup
+- `app/projects/[slug]/` — public project pages
+- `supabase/migrations/` — database, RLS, and Storage setup
+- `supabase/seed.sql` — current portfolio migration data
