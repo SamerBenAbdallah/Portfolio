@@ -255,9 +255,10 @@ export function AdminDashboard({ initialProjects, email }: { initialProjects: Po
               <label className="admin-field wide"><span>Video URL</span><input type="url" value={draft.video_url ?? ""} onChange={(event) => update("video_url", event.target.value || null)} placeholder="Supabase Storage or external MP4 URL" /><small className="admin-help">Existing imported motion playlists are preserved automatically.</small></label>
 
               <section className="admin-media-block">
-                <header><strong>Cover / poster *</strong><label className="admin-upload-input">Choose image<input type="file" accept="image/*" onChange={chooseCover} /></label></header>
+                <header><strong>{draft.project_type === "graphic" ? "Cartridge sticker / project cover *" : "Video poster / project cover *"}</strong><label className="admin-upload-input">Upload image<input type="file" accept="image/*" onChange={chooseCover} /></label></header>
+                <p className="admin-help">{draft.project_type === "graphic" ? "This image is stored with the project and appears as its editable arcade-cartridge sticker." : "This image is stored with the project and appears as its motion poster."}</p>
                 <label className="admin-field"><span>Current URL</span><input value={draft.cover_image} onChange={(event) => update("cover_image", event.target.value)} required /></label>
-                {(pendingCoverPreview || draft.cover_image) && <div className="admin-media-preview" style={{ marginTop: 12 }}><div className="admin-media-item"><img src={pendingCoverPreview || draft.cover_image} alt="Cover preview" /></div></div>}
+                {(pendingCoverPreview || draft.cover_image) && <div className="admin-media-preview" style={{ marginTop: 12 }}><div className="admin-media-item"><img src={pendingCoverPreview || draft.cover_image} alt={draft.project_type === "graphic" ? "Cartridge sticker preview" : "Cover preview"} /></div></div>}
               </section>
 
               <section className="admin-media-block">

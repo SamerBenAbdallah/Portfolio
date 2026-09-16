@@ -564,8 +564,10 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
           <div className="project-grid">
             {graphicProjects.map((project, index) => (
               <article className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+                <span className="cartridge-vents" aria-hidden="true" />
                 <button className="project-art" type="button" aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></button>
                 <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
+                <span className="cartridge-contacts" aria-hidden="true" />
               </article>
             ))}
             {!graphicProjects.length && <p className="arcade-empty-state">NO GRAPHIC CASE FILES PUBLISHED // CHECK BACK SOON</p>}
@@ -685,8 +687,8 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
     document.body.style.overflow = "hidden";
 
     const ctx = gsap.context(() => {
-      gsap.set(".arcade-stage", { autoAlpha: 1 });
       gsap.set(".arcade-artboard", { y: reduced ? 15 : "105vh", scale: reduced ? 1 : 0.9 });
+      gsap.set(".arcade-stage", { autoAlpha: 1 });
       gsap.set(".about-level", { autoAlpha: 0, display: "none" });
 
       gsap.timeline({ defaults: { ease: "power3.out" } })

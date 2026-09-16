@@ -64,6 +64,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.doesNotMatch(component, /className="intro-player"/);
   assert.match(component, /className="start-line"/);
   assert.match(component, /screen-pac-dots/);
+  assert.match(component, /cartridge-vents/);
+  assert.match(component, /cartridge-contacts/);
   assert.match(component, /PLAYER 1 \/\/ INSERT COIN/);
   assert.match(component, /Pac-Man-inspired arcade cabinet/);
   assert.doesNotMatch(component, /className="press-line"/);
@@ -91,6 +93,10 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /@keyframes heart-gain/);
   assert.match(styles, /@keyframes heart-ring/);
   assert.match(styles, /\.project-grid/);
+  assert.match(styles, /@keyframes cartridge-float/);
+  assert.match(styles, /\.arcade-stage[^}]+opacity: 0[^}]+visibility: hidden/s);
+  assert.match(styles, /\.about-level[^}]+display: none[^}]+visibility: hidden[^}]+opacity: 0/s);
+  assert.match(styles, /\.music-toggle[^}]+opacity: 0[^}]+visibility: hidden/s);
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
@@ -117,6 +123,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(repository, /\.order\("display_order"/);
   assert.match(admin, /Permanently delete/);
   assert.match(admin, /admin-action-feedback/);
+  assert.match(admin, /Cartridge sticker \/ project cover/);
+  assert.match(admin, /editable arcade-cartridge sticker/);
   assert.match(projectPage, /getPublishedProjectBySlug/);
 
   await Promise.all([
