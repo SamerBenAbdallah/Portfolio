@@ -28,7 +28,7 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /arcade-room-v2\.png/i);
   assert.match(html, /portfolio-title-v2\.png/i);
   assert.match(html, /Press start to enter the portfolio/i);
-  assert.match(html, /SYSTEM ONLINE/i);
+  assert.match(html, /PLAYER 1 \/\/ INSERT COIN/i);
   assert.doesNotMatch(html, />OPTIONS</i);
   assert.match(html, /ABOUT/);
   assert.match(html, /GRAPHIC/);
@@ -62,6 +62,9 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
   assert.doesNotMatch(component, /className="intro-player"/);
   assert.match(component, /className="start-line"/);
+  assert.match(component, /screen-pac-dots/);
+  assert.match(component, /PLAYER 1 \/\/ INSERT COIN/);
+  assert.match(component, /Pac-Man-inspired arcade cabinet/);
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 4 \}/);
   assert.match(component, /heartTargetRef\.current = Math\.min\(3, target\)/);
@@ -90,6 +93,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
+  assert.match(styles, /\.machine-screen[^}]+left: 31\.55%[^}]+top: 35\.85%/s);
+  assert.match(styles, /\.screen-pac-dots/);
   assert.match(styles, /img\.motion-poster[^}]+object-fit: contain/s);
   assert.match(styles, /\.case-playlist img[^}]+object-fit: contain/s);
   assert.match(styles, /\.level-heading h2[^}]+font-weight: 900/s);

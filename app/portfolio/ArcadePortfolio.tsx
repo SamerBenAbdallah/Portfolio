@@ -157,7 +157,7 @@ function ArcadeStage({
         <img
           className="arcade-room-art"
           src="/assets/arcade/v2/arcade-room-v2.png"
-          alt="A large red arcade cabinet glowing in a dark neon game room"
+          alt="A glowing red Pac-Man-inspired arcade cabinet surrounded by colorful pixel ghosts"
         />
 
         <div className="removed-marquee" aria-hidden="true" hidden>
@@ -176,17 +176,26 @@ function ArcadeStage({
             <span className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</span>
           ) : (
             <span className="screen-display">
-              <small>SYSTEM ONLINE</small>
+              <span className="screen-score" aria-hidden="true">
+                <i>1UP</i>
+                <i>HIGH SCORE</i>
+                <i>READY!</i>
+              </span>
+              <span className="screen-pac-dots" aria-hidden="true">
+                {Array.from({ length: 9 }, (_, index) => <i key={index} />)}
+              </span>
+              <small>PLAYER 1 // INSERT COIN</small>
               <strong>
                 <span>PRESS</span>
                 <span className="start-line"><i className="start-cursor" />START</span>
               </strong>
+              <em>CLICK TO PLAY</em>
             </span>
           )}
         </button>
       </div>
 
-      <p className="start-hint">CLICK THE CRT TO BEGIN</p>
+      <p className="start-hint"><span aria-hidden="true">●</span> INSERT COIN · CLICK THE SCREEN</p>
     </section>
   );
 }
