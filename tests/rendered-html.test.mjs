@@ -97,6 +97,11 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /@keyframes heart-ring/);
   assert.match(styles, /\.project-grid/);
   assert.match(styles, /@keyframes cartridge-float/);
+  assert.match(styles, /\.project-card, \.motion-card[^}]+--shell-color: #ffd21c/s);
+  assert.match(styles, /nth-child\(3n \+ 2\)[^}]+--shell-color: #ff2f95/s);
+  assert.match(styles, /nth-child\(3n\)[^}]+--shell-color: #1957f2/s);
+  assert.match(styles, /\.project-copy[^}]+var\(--shell-light\)[^}]+rgba\(4,7,31,\.94\)/s);
+  assert.match(styles, /\.motion-copy[^}]+var\(--shell-light\)[^}]+rgba\(4,7,31,\.94\)/s);
   assert.match(styles, /\.project-card:hover[^}]+cartridge-float \.95s/s);
   assert.match(styles, /\.motion-card:hover[^}]+cartridge-float \.95s/s);
   assert.match(styles, /\.motion-grid[^}]+repeat\(3, minmax\(0, 1fr\)\)/s);
