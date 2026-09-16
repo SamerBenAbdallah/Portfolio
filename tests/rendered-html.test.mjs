@@ -54,6 +54,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
   assert.match(component, /ARCADE RUN/);
+  assert.match(component, /useState\(false\).*musicRef/s);
+  assert.match(component, /master\.gain\.setValueAtTime\(0\.38/);
   assert.match(component, /const chordProgression/);
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
@@ -108,6 +110,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(repository, /\.eq\("published", true\)/);
   assert.match(repository, /\.order\("display_order"/);
   assert.match(admin, /Permanently delete/);
+  assert.match(admin, /admin-action-feedback/);
   assert.match(projectPage, /getPublishedProjectBySlug/);
 
   await Promise.all([

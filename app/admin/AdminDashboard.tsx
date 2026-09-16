@@ -239,7 +239,6 @@ export function AdminDashboard({ initialProjects, email }: { initialProjects: Po
         <section className="admin-panel">
           <div className="admin-panel-header"><h2>{draft.id ? `Edit: ${draft.title}` : "Add project"}</h2><span className="admin-help">{draft.published ? "Published" : "Draft"}</span></div>
           <form className="admin-form" onSubmit={save}>
-            <p className={`admin-status ${error ? "error" : ""}`} role="status">{status}</p>
             <div className="admin-form-grid">
               <label className="admin-field"><span>Title *</span><input value={draft.title} onChange={(event) => titleChanged(event.target.value)} required /></label>
               <label className="admin-field"><span>Slug *</span><input value={draft.slug} onChange={(event) => update("slug", slugifyProjectTitle(event.target.value))} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required /></label>
@@ -274,8 +273,8 @@ export function AdminDashboard({ initialProjects, email }: { initialProjects: Po
               <div className="admin-checks"><label><input type="checkbox" checked={draft.featured} onChange={(event) => update("featured", event.target.checked)} /> Featured</label><label><input type="checkbox" checked={draft.published} onChange={(event) => update("published", event.target.checked)} /> Published</label><label><input type="checkbox" checked={draft.longform} onChange={(event) => update("longform", event.target.checked)} /> Long scrolling artwork</label></div>
             </div>
             <div className="admin-actions">
-              <button className="admin-danger" type="button" onClick={removeProject} disabled={!draft.id || busy}>Delete project</button>
-              <div><button className="admin-secondary" type="button" onClick={createNew} disabled={busy}>Cancel</button><button className="admin-primary" type="submit" disabled={busy}>{busy ? "Saving…" : draft.published ? "Save & publish" : "Save draft"}</button></div>
+              <p className={`admin-action-feedback ${error ? "error" : ""}`} role="status" aria-live="polite">{status}</p>
+              <div className="admin-action-controls"><button className="admin-danger" type="button" onClick={removeProject} disabled={!draft.id || busy}>Delete project</button><button className="admin-secondary" type="button" onClick={createNew} disabled={busy}>Cancel</button><button className="admin-primary" type="submit" disabled={busy}>{busy ? "Saving…" : draft.published ? "Save & publish" : "Save draft"}</button></div>
             </div>
           </form>
         </section>

@@ -99,7 +99,7 @@ function createArcadeMusic(): MusicEngine {
   const context = new AudioContextClass();
   const master = context.createGain();
   const compressor = context.createDynamicsCompressor();
-  master.gain.setValueAtTime(0.16, context.currentTime);
+  master.gain.setValueAtTime(0.38, context.currentTime);
   compressor.threshold.setValueAtTime(-18, context.currentTime);
   compressor.ratio.setValueAtTime(4, context.currentTime);
   master.connect(compressor).connect(context.destination);
@@ -123,9 +123,9 @@ function createArcadeMusic(): MusicEngine {
       const melodyNote = melodyBars[melodyOrder[bar]][barStep];
       const chord = chordProgression[bar];
       const arpNote = chord[(barStep / 2) % chord.length];
-      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.42, 0.027, "square");
-      if (barStep % 2 === 0 && !(bar === 0 && barStep < 8)) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.72, 0.009, "triangle");
-      if (barStep % 8 === 0) scheduleTone(context, master, bassRoots[bar], engine.nextNoteTime, stepDuration * 6.5, 0.033, "triangle");
+      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.42, 0.052, "square");
+      if (barStep % 2 === 0 && !(bar === 0 && barStep < 8)) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.72, 0.018, "triangle");
+      if (barStep % 8 === 0) scheduleTone(context, master, bassRoots[bar], engine.nextNoteTime, stepDuration * 6.5, 0.065, "triangle");
       if (barStep === 0 || barStep === 10) scheduleKick(context, master, engine.nextNoteTime);
       if (barStep === 4 || barStep === 12) scheduleSnare(context, master, engine.nextNoteTime);
       if (barStep % 2 === 0 && bar !== 13) scheduleHat(context, master, engine.nextNoteTime);
@@ -612,7 +612,7 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [countdown, setCountdown] = useState("");
-  const [soundOn, setSoundOn] = useState(true);
+  const [soundOn, setSoundOn] = useState(false);
   const musicRef = useRef<MusicEngine | null>(null);
 
   const startMusic = () => {
@@ -724,7 +724,9 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   const startGame = () => {
     if (!ready || started) return;
     setStarted(true);
-    if (soundOn) playConfirm(startMusic());
+    const audio = startMusic();
+    setSoundOn(true);
+    playConfirm(audio);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     gsap.timeline()
