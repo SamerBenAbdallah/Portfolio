@@ -15,8 +15,7 @@ export default async function AdminPage() {
       <main className="admin-auth">
         <section className="admin-auth-card admin-setup">
           <h1>Access not enabled</h1>
-          <p>Your Supabase login works, but this account is not listed in <code>public.admin_users</code>.</p>
-          <pre>insert into public.admin_users (user_id){"\n"}values (&apos;{user.id}&apos;);</pre>
+          <p>Your sign-in worked, but <strong>{user.email}</strong> is not on the portfolio administrator allowlist.</p>
           <a href="/admin/login">Return to sign in</a>
         </section>
       </main>

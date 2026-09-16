@@ -95,11 +95,7 @@ export async function requirePortfolioAdmin() {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) return { supabase, user: null, isAdmin: false };
 
-  const { data: admin } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", authData.user.id)
-    .maybeSingle();
+  const { data: admin, error: adminError } = await supabase.rpc("is_portfolio_admin");
 
-  return { supabase, user: authData.user, isAdmin: Boolean(admin) };
+  return { supabase, user: authData.user, isAdmin: !adminError && admin === true };
 }

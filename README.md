@@ -22,25 +22,26 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Without environment values, the public portfolio still runs from `app/data/portfolio.ts`; `/admin` shows a setup guide.
+Without environment values, the public portfolio still runs from `app/data/local-projects.ts`; `/admin` shows a setup guide.
 
 ## Supabase setup
 
 1. Create a Supabase project.
-2. Open **SQL Editor** and run [`supabase/migrations/202609160001_portfolio_cms.sql`](supabase/migrations/202609160001_portfolio_cms.sql). This creates:
+2. Open **SQL Editor** and run the files in [`supabase/migrations/`](supabase/migrations/) in filename order. This creates:
    - `projects`
    - `admin_users`
+   - `admin_emails`
    - Row Level Security policies
    - `project-media` Storage bucket and policies
 3. Run [`supabase/seed.sql`](supabase/seed.sql) to import the current 11 graphic and motion project groups in their existing order.
-4. In **Authentication → Users**, create the private email/password user that will manage the portfolio. Disable public sign-ups unless you intentionally need them.
-5. Copy that user's UUID and run:
+4. Add the email that may manage the portfolio:
 
 ```sql
-insert into public.admin_users (user_id)
-values ('YOUR_AUTH_USER_UUID');
+insert into public.admin_emails (email)
+values (lower('YOUR_ADMIN_EMAIL'));
 ```
 
+5. In **Authentication → URL Configuration**, set the Site URL to the production domain and allow its `/auth/callback` route.
 6. In **Project Settings → API**, copy the project URL and publishable/anon key into `.env.local`:
 
 ```dotenv
@@ -48,7 +49,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-7. Restart `pnpm dev`, then sign in at [http://localhost:3000/admin](http://localhost:3000/admin).
+7. Restart `pnpm dev`, then request a one-time email sign-in link at [http://localhost:3000/admin](http://localhost:3000/admin).
 
 The browser-visible anon key is expected. Authorization is enforced by Row Level Security. Never add a Supabase service-role key to this repository or any `NEXT_PUBLIC_` variable.
 
