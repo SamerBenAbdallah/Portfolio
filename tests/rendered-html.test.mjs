@@ -24,9 +24,8 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /samer-profile\.png/i);
   assert.match(html, /after-effects\.svg/i);
   assert.doesNotMatch(html, /Figma/i);
-  assert.match(html, /hero-scene-v2\.png/i);
   assert.match(html, /arcade-room-v2\.png/i);
-  assert.match(html, /portfolio-title-v2\.png/i);
+  assert.doesNotMatch(html, /hero-scene-v2\.png|portfolio-title-v2\.png/i);
   assert.match(html, /Press start to enter the portfolio/i);
   assert.match(html, /PLAYER 1 \/\/ INSERT COIN/i);
   assert.doesNotMatch(html, />OPTIONS</i);
@@ -60,6 +59,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
   assert.match(component, /aria-label="Press start to enter the portfolio"/);
+  assert.doesNotMatch(component, /className="intro-screen"/);
+  assert.doesNotMatch(component, /hero-scene-v2\.png|portfolio-title-v2\.png/);
   assert.doesNotMatch(component, /className="intro-player"/);
   assert.match(component, /className="start-line"/);
   assert.match(component, /screen-pac-dots/);

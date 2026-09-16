@@ -685,23 +685,14 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
     document.body.style.overflow = "hidden";
 
     const ctx = gsap.context(() => {
-      gsap.set(".arcade-stage", { autoAlpha: 0 });
+      gsap.set(".arcade-stage", { autoAlpha: 1 });
       gsap.set(".arcade-artboard", { y: reduced ? 15 : "105vh", scale: reduced ? 1 : 0.9 });
-      gsap.set(".intro-role, .title-art, .intro-prompt", { autoAlpha: 0 });
       gsap.set(".about-level", { autoAlpha: 0, display: "none" });
 
       gsap.timeline({ defaults: { ease: "power3.out" } })
-        .fromTo(".title-art", { scale: 0.82, filter: "blur(10px) brightness(1.7)" }, { autoAlpha: 1, scale: 1, filter: "blur(0px) brightness(1)", duration: reduced ? 0.18 : 0.72 }, 0.28)
-        .to(".intro-role", { autoAlpha: 1, duration: reduced ? 0.1 : 0.34 }, 0.72)
-        .to(".intro-prompt", { autoAlpha: 1, duration: 0.25 }, 0.92)
-        .to({}, { duration: reduced ? 0.15 : 1.15 })
-        .to(".intro-content", { y: reduced ? -12 : -80, autoAlpha: 0, duration: reduced ? 0.2 : 0.62, ease: "power3.in" })
-        .to(".intro-screen", { autoAlpha: 0, duration: reduced ? 0.15 : 0.35 }, "<0.18")
-        .set(".intro-screen", { display: "none" })
-        .to(".arcade-stage", { autoAlpha: 1, duration: 0.18 })
-        .to(".arcade-artboard", { y: 0, scale: 1, duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, "<")
+        .to(".arcade-artboard", { y: 0, scale: 1, duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, reduced ? 0 : 0.12)
         .fromTo(".machine-screen", { filter: "brightness(2.6)", autoAlpha: 0 }, { filter: "brightness(1)", autoAlpha: 1, duration: 0.4 }, "-=0.2")
-        .fromTo(".start-hint, .sound-toggle", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
+        .fromTo(".start-hint, .music-toggle", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
     }, root);
 
     return () => {
@@ -769,16 +760,6 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
         <span className="arcade-cursor-ping" />
         <img className="arcade-joystick" src="/assets/arcade/icons/joystick-cursor.png" alt="" />
       </div>
-      <section className="intro-screen" aria-label="Portfolio intro">
-        <img className="intro-background" src="/assets/arcade/v2/hero-scene-v2.png" alt="" />
-        <div className="intro-content">
-          <h1 className="sr-only">{data.title}</h1>
-          <img className="title-art" src="/assets/arcade/v2/portfolio-title-v2.png" alt="PORTFOLIO" />
-          <p className="intro-role">{data.role}</p>
-          <p className="intro-prompt">LOADING ARCADE EXPERIENCE...</p>
-        </div>
-      </section>
-
       <ArcadeStage
         countdown={countdown}
         ready={ready}
