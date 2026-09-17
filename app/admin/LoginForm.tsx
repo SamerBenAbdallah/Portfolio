@@ -29,7 +29,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={submit}>
-      <label>Email<input name="email" type="email" autoComplete="email" required autoFocus /></label>
+      <label>Email<input name="email" type="email" autoComplete="email" required /></label>
       <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
       {status && <p className="admin-status error" role="alert">{status}</p>}
       <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>

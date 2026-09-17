@@ -44,17 +44,18 @@ test("server-renders the arcade portfolio experience", async () => {
 });
 
 test("ships the complete production artwork and interaction source", async () => {
-  const [component, styles, layout] = await Promise.all([
+  const [component, styles, layout, settings] = await Promise.all([
     readFile(new URL("../app/portfolio/ArcadePortfolio.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/settings/types.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
-  assert.match(component, /ARCADE RUN/);
+  assert.match(settings, /ARCADE RUN/);
   assert.match(component, /useState\(false\).*musicRef/s);
-  assert.match(component, /master\.gain\.setValueAtTime\(0\.38/);
+  assert.match(component, /master\.gain\.setValueAtTime\(volume/);
   assert.match(component, /const chordProgression/);
   assert.match(component, /scheduleSnare/);
   assert.match(component, /prefers-reduced-motion/);
@@ -69,8 +70,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /cartridge-vents/);
   assert.match(component, /cartridge-contacts/);
   assert.match(component, /motion-card.*?cartridge-vents.*?motion-screen.*?cartridge-contacts/s);
-  assert.match(component, /PLAYER 1 \/\/ INSERT COIN/);
-  assert.match(component, /Pac-Man-inspired arcade cabinet/);
+  assert.match(settings, /PLAYER 1 \/\/ INSERT COIN/);
+  assert.match(settings, /Pac-Man-inspired arcade cabinet/);
   assert.doesNotMatch(component, /className="press-line"/);
   assert.match(component, /Array\.from\(\{ length: 4 \}/);
   assert.match(component, /heartTargetRef\.current = Math\.min\(3, target\)/);
@@ -97,9 +98,9 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /@keyframes heart-ring/);
   assert.match(styles, /\.project-grid/);
   assert.match(styles, /@keyframes cartridge-float/);
-  assert.match(styles, /\.project-card, \.motion-card[^}]+--shell-color: #ffd21c/s);
-  assert.match(styles, /nth-child\(3n \+ 2\)[^}]+--shell-color: #ff2f95/s);
-  assert.match(styles, /nth-child\(3n\)[^}]+--shell-color: #1957f2/s);
+  assert.match(styles, /\.project-card, \.motion-card[^}]+--shell-color: var\(--shell-yellow/s);
+  assert.match(styles, /nth-child\(3n \+ 2\)[^}]+--shell-color: var\(--shell-pink/s);
+  assert.match(styles, /nth-child\(3n\)[^}]+--shell-color: var\(--shell-blue/s);
   assert.match(styles, /\.project-copy[^}]+var\(--shell-light\)[^}]+rgba\(4,7,31,\.94\)/s);
   assert.match(styles, /\.motion-copy[^}]+var\(--shell-light\)[^}]+rgba\(4,7,31,\.94\)/s);
   assert.match(styles, /\.project-card:hover[^}]+cartridge-float \.95s/s);
@@ -121,23 +122,30 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.project-copy h3, \.motion-copy h3[^}]+font-weight: 600/s);
   assert.doesNotMatch(styles, /\.arcade-marquee/);
   assert.match(styles, /\.lives[^}]+font-size: clamp\(1\.05rem, 1\.35vw, 1\.28rem\)/s);
-  assert.match(layout, /og-v3\.png/);
+  assert.match(layout, /getSiteSettings/);
+  assert.match(settings, /og-v3\.png/);
 
-  const [migration, repository, admin, projectPage] = await Promise.all([
+  const [migration, settingsMigration, repository, admin, settingsAdmin, projectPage] = await Promise.all([
     readFile(new URL("../supabase/migrations/202609160001_portfolio_cms.sql", import.meta.url), "utf8"),
+    readFile(new URL("../supabase/migrations/202609170001_site_settings.sql", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/projects/repository.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/SiteSettingsEditor.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/projects/[slug]/page.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(migration, /enable row level security/i);
   assert.match(migration, /Public can read published projects/);
   assert.match(migration, /project-media/);
+  assert.match(settingsMigration, /site_settings/);
+  assert.match(settingsMigration, /site-assets/);
   assert.match(repository, /\.eq\("published", true\)/);
   assert.match(repository, /\.order\("display_order"/);
   assert.match(admin, /Permanently delete/);
   assert.match(admin, /admin-action-feedback/);
   assert.match(admin, /Cartridge sticker \/ project cover/);
   assert.match(admin, /editable arcade-cartridge sticker/);
+  assert.match(settingsAdmin, /Publish settings/);
+  assert.match(settingsAdmin, /Favicon \/ website icon/);
   assert.match(projectPage, /getPublishedProjectBySlug/);
 
   await Promise.all([

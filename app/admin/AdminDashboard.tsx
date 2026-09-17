@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 import type { PortfolioProject, ProjectInput } from "../lib/projects/types";
 import { slugifyProjectTitle } from "../lib/projects/types";
+import type { SiteSettings } from "../lib/settings/types";
+import { SiteSettingsEditor } from "./SiteSettingsEditor";
 
 type EditableProject = ProjectInput & { id?: string };
 
@@ -46,7 +48,7 @@ function splitList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
-export function AdminDashboard({ initialProjects, email }: { initialProjects: PortfolioProject[]; email: string }) {
+export function AdminDashboard({ initialProjects, initialSettings, email }: { initialProjects: PortfolioProject[]; initialSettings: SiteSettings; email: string }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [draft, setDraft] = useState<EditableProject>(() => blankProject(initialProjects.length));
@@ -219,10 +221,11 @@ export function AdminDashboard({ initialProjects, email }: { initialProjects: Po
     <div className="admin-shell">
       <header className="admin-topbar">
         <div><strong>Player01 Portfolio CMS</strong><small>{email}</small></div>
-        <div><a href="/" target="_blank">View portfolio ↗</a><button type="button" onClick={signOut}>Sign out</button></div>
+        <div><a href="#site-settings">Site settings</a><a href="#projects">Projects</a><a href="/" target="_blank">View portfolio ↗</a><button type="button" onClick={signOut}>Sign out</button></div>
       </header>
+      <div className="admin-settings-wrap"><SiteSettingsEditor initialSettings={initialSettings} /></div>
       <main className="admin-main">
-        <aside className="admin-panel admin-list-panel">
+        <aside className="admin-panel admin-list-panel" id="projects">
           <div className="admin-panel-header"><h1>Projects ({projects.length})</h1><button className="admin-primary" type="button" onClick={createNew}>+ Add</button></div>
           <div className="admin-project-list">
             {projects.map((project, index) => (

@@ -3,6 +3,7 @@ import { getAdminProjects, requirePortfolioAdmin } from "../lib/projects/reposit
 import { isSupabaseConfigured } from "../lib/supabase/config";
 import { AdminDashboard } from "./AdminDashboard";
 import { SetupNotice } from "./SetupNotice";
+import { getAdminSiteSettings } from "../lib/settings/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,6 @@ export default async function AdminPage() {
     );
   }
 
-  const projects = await getAdminProjects();
-  return <AdminDashboard initialProjects={projects} email={user.email ?? "Admin"} />;
+  const [projects, settings] = await Promise.all([getAdminProjects(), getAdminSiteSettings()]);
+  return <AdminDashboard initialProjects={projects} initialSettings={settings} email={user.email ?? "Admin"} />;
 }

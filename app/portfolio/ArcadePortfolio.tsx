@@ -2,8 +2,8 @@
 
 import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { portfolioData as data } from "../data/portfolio";
 import type { ArcadeProject } from "../lib/projects/types";
+import type { SiteSettings } from "../lib/settings/types";
 
 type MusicEngine = {
   context: AudioContext;
@@ -94,12 +94,12 @@ function scheduleSnare(context: AudioContext, destination: AudioNode, time: numb
   source.start(time);
 }
 
-function createArcadeMusic(): MusicEngine {
+function createArcadeMusic(volume = 0.38): MusicEngine {
   const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const context = new AudioContextClass();
   const master = context.createGain();
   const compressor = context.createDynamicsCompressor();
-  master.gain.setValueAtTime(0.38, context.currentTime);
+  master.gain.setValueAtTime(volume, context.currentTime);
   compressor.threshold.setValueAtTime(-18, context.currentTime);
   compressor.ratio.setValueAtTime(4, context.currentTime);
   master.connect(compressor).connect(context.destination);
@@ -145,19 +145,21 @@ function ArcadeStage({
   ready,
   started,
   onStart,
+  settings,
 }: {
   countdown: string;
   ready: boolean;
   started: boolean;
   onStart: () => void;
+  settings: SiteSettings["homepage"];
 }) {
   return (
     <section className="arcade-stage" aria-label="Press start scene">
       <div className="arcade-artboard">
         <img
           className="arcade-room-art"
-          src="/assets/arcade/v2/arcade-room-v2.png"
-          alt="A glowing red Pac-Man-inspired arcade cabinet surrounded by colorful pixel ghosts"
+          src={settings.arcadeImage}
+          alt={settings.arcadeImageAlt}
           fetchPriority="high"
           draggable={false}
         />
@@ -181,23 +183,23 @@ function ArcadeStage({
               <span className="screen-score" aria-hidden="true">
                 <i>1UP</i>
                 <i>HIGH SCORE</i>
-                <i>READY!</i>
+                <i>{settings.screenPlayerLabel}</i>
               </span>
               <span className="screen-pac-dots" aria-hidden="true">
                 {Array.from({ length: 9 }, (_, index) => <i key={index} />)}
               </span>
-              <small>PLAYER 1 // INSERT COIN</small>
+              <small>{settings.systemLabel}</small>
               <strong>
-                <span>PRESS</span>
-                <span className="start-line"><i className="start-cursor" />START</span>
+                <span>{settings.pressText}</span>
+                <span className="start-line"><i className="start-cursor" />{settings.startText}</span>
               </strong>
-              <em>CLICK TO PLAY</em>
+              <em>{settings.screenCta}</em>
             </span>
           )}
         </button>
       </div>
 
-      <p className="start-hint"><span aria-hidden="true">●</span> INSERT COIN · CLICK THE SCREEN</p>
+      <p className="start-hint"><span aria-hidden="true">●</span> {settings.startHint}</p>
     </section>
   );
 }
@@ -390,7 +392,18 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
   );
 }
 
-function AboutSection({ projects }: { projects: ArcadeProject[] }) {
+function AboutSection({ projects, settings }: { projects: ArcadeProject[]; settings: SiteSettings }) {
+  const data = {
+    playerLabel: settings.profile.name,
+    role: settings.profile.role,
+    about: settings.profile.about,
+    profileImage: settings.profile.profileImage,
+    brandMark: settings.profile.brandMark,
+    stats: settings.profile.stats,
+    skills: settings.profile.skills,
+    contactEmail: settings.contact.email,
+    navigation: settings.sections.navigation,
+  };
   const [activeSection, setActiveSection] = useState(0);
   const [heartLevel, setHeartLevel] = useState(0);
   const [breakingHeart, setBreakingHeart] = useState<number | null>(null);
@@ -525,7 +538,7 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
         <a href="#about" className="brand" aria-label="Samer Ben Abdallah — About" onClick={() => visitSection(0)}><img className="brand-mark" src={data.brandMark} alt="" /><span className="sr-only">{data.playerLabel}</span></a>
         <div className={`nav-links ${mobileMenuOpen ? "is-open" : ""}`}>
           {data.navigation.map((item, index) => (
-            <a key={item} className={index === activeSection ? "active" : ""} href={`#${item.toLowerCase()}`} onClick={() => visitSection(index)}>{item}</a>
+            <a key={`${index}-${item}`} className={index === activeSection ? "active" : ""} href={`#${["about", "work", "motion", "contact"][index]}`} onClick={() => visitSection(index)}>{item}</a>
           ))}
         </div>
         <button className="mobile-nav-toggle" type="button" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen((current) => !current)}>
@@ -546,23 +559,23 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
       </nav>
 
       <section className="about-shell" id="about">
-        <div className="level-kicker"><span>LEVEL 01</span><i /><small>PLAYER PROFILE</small></div>
+        <div className="level-kicker"><span>{settings.sections.profileLevelLabel}</span><i /><small>{settings.sections.profileArchiveLabel}</small></div>
         <div className="about-grid">
-          <figure className="profile-panel"><img src={data.profileImage} alt="Pixel-art portrait of Samer Ben Abdallah" /><figcaption>SAMER BEN ABDALLAH // GRAPHIC &amp; MOTION DESIGNER</figcaption></figure>
+          <figure className="profile-panel"><img src={data.profileImage} alt={`Pixel-art portrait of ${data.playerLabel}`} /><figcaption>{settings.profile.profileCaption}</figcaption></figure>
           <div className="about-copy">
-            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>CHARACTER SELECTED</p><h1 id="about-heading"><strong>SAMER BEN ABDALLAH</strong></h1></div></div>
+            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>{settings.profile.selectedLabel}</p><h1 id="about-heading"><strong>{data.playerLabel}</strong></h1></div></div>
             <p className="bio">{data.about}</p>
             <div className="stats" aria-label="Portfolio statistics">{data.stats.map((stat) => <div className="stat" key={stat.label}><img src={stat.icon} alt="" /><div><strong>{stat.value}</strong><small>{stat.label}</small></div></div>)}</div>
             <div className="inventory"><div className="section-label"><span>SKILLS &amp; TOOLS</span><i /></div><div className="skill-list">{data.skills.map((skill) => <div className="skill" key={skill.name} title={skill.name}><img src={skill.icon} alt="" /><small>{skill.name}</small></div>)}</div></div>
-            <a className="work-button" href="#work" onClick={() => visitSection(1)}>VIEW MY WORK <span>▶</span></a>
+            <a className="work-button" href="#work" onClick={() => visitSection(1)}>{settings.profile.workButtonLabel} <span>▶</span></a>
           </div>
         </div>
       </section>
 
       <section className="portfolio-level work-level" id="work" aria-labelledby="work-heading">
         <div className="level-shell">
-          <div className="level-kicker"><span>LEVEL 02</span><i /><small>DESIGN ARCHIVE</small></div>
-          <header className="level-heading"><p>SELECT A CASE FILE</p><h2 id="work-heading"><span>GRAPHIC</span> DESIGN</h2><p className="level-intro">Identity systems, campaigns, and visual tools built to make ideas recognizable at every size.</p></header>
+          <div className="level-kicker"><span>{settings.sections.graphicLevelLabel}</span><i /><small>{settings.sections.graphicArchiveLabel}</small></div>
+          <header className="level-heading"><p>{settings.sections.graphicEyebrow}</p><h2 id="work-heading"><span>{settings.sections.graphicHeadingAccent}</span> {settings.sections.graphicHeadingRest}</h2><p className="level-intro">{settings.sections.graphicIntro}</p></header>
           <div className="project-grid">
             {graphicProjects.map((project, index) => (
               <article className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
@@ -579,8 +592,8 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
 
       <section className="portfolio-level motion-level" id="motion" aria-labelledby="motion-heading">
         <div className="level-shell">
-          <div className="level-kicker"><span>LEVEL 03</span><i /><small>MOTION LAB</small></div>
-          <header className="level-heading"><p>PRESS PLAY</p><h2 id="motion-heading"><span>MOTION</span> DESIGN</h2><p className="level-intro">Motion systems where timing, type, sound, and transitions turn static ideas into memorable stories.</p></header>
+          <div className="level-kicker"><span>{settings.sections.motionLevelLabel}</span><i /><small>{settings.sections.motionArchiveLabel}</small></div>
+          <header className="level-heading"><p>{settings.sections.motionEyebrow}</p><h2 id="motion-heading"><span>{settings.sections.motionHeadingAccent}</span> {settings.sections.motionHeadingRest}</h2><p className="level-intro">{settings.sections.motionIntro}</p></header>
           <div className="motion-grid">
             {motionProjects.map((project) => (
               <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
@@ -597,22 +610,22 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
 
       <section className="portfolio-level contact-level" id="contact" aria-labelledby="contact-heading">
         <div className="level-shell">
-          <div className="level-kicker"><span>LEVEL 04</span><i /><small>PLAYER TWO WANTED</small></div>
-          <header className="level-heading"><p>NEW MISSION AVAILABLE</p><h2 id="contact-heading"><span>LET&apos;S CREATE</span> SOMETHING</h2><p className="level-intro">Have a brand, campaign, or motion idea in mind? Send the mission brief and let&apos;s build the next level together.</p></header>
+          <div className="level-kicker"><span>{settings.sections.contactLevelLabel}</span><i /><small>{settings.sections.contactArchiveLabel}</small></div>
+          <header className="level-heading"><p>{settings.sections.contactEyebrow}</p><h2 id="contact-heading"><span>{settings.sections.contactHeadingAccent}</span> {settings.sections.contactHeadingRest}</h2><p className="level-intro">{settings.sections.contactIntro}</p></header>
           <div className="contact-grid">
-            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>PLAYER 01 STATUS</p><h3>AVAILABLE FOR SELECT FREELANCE PROJECTS</h3><a href={`mailto:${data.contactEmail}`}>{data.contactEmail}</a><ul><li><span>01</span> Brand identity &amp; campaigns</li><li><span>02</span> Motion graphics &amp; editing</li><li><span>03</span> Social content systems</li></ul><div className="response-time"><small>TYPICAL RESPONSE</small><strong>WITHIN 1–2 DAYS</strong></div></aside>
+            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>{settings.contact.statusLabel}</p><h3>{settings.contact.availabilityHeading}</h3><a href={`mailto:${data.contactEmail}`}>{data.contactEmail}</a><ul>{settings.contact.services.map((service, index) => <li key={service}><span>{String(index + 1).padStart(2, "0")}</span> {service}</li>)}</ul><div className="response-time"><small>{settings.contact.responseLabel}</small><strong>{settings.contact.responseValue}</strong></div></aside>
             <form className="contact-form" onSubmit={submitContact} noValidate>
               <div className="form-row"><label><span>PLAYER NAME</span><input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label><span>EMAIL ADDRESS</span><input name="email" type="email" autoComplete="email" placeholder="you@example.com" /></label></div>
               <label><span>MISSION TYPE</span><select name="projectType" defaultValue=""><option value="" disabled>Select a project type</option><option>Graphic Design</option><option>Motion Design</option><option>Brand Identity</option><option>Social Campaign</option><option>Something Else</option></select></label>
               <label><span>MISSION BRIEF</span><textarea name="message" rows={6} placeholder="Tell me what you want to create..." /></label>
-              <button className="send-button" type="submit">SEND MESSAGE <span>▶</span></button>
+              <button className="send-button" type="submit">{settings.contact.sendButtonLabel} <span>▶</span></button>
               <p className={`form-status ${contactStatus ? "is-visible" : ""}`} role="status">{contactStatus || "READY // WAITING FOR INPUT"}</p>
             </form>
           </div>
         </div>
       </section>
 
-      <footer className="game-footer" id="finish"><div><strong>THANKS FOR PLAYING</strong><span>INSERT COIN TO CONTINUE</span><small>© {new Date().getFullYear()} SAMER BEN ABDALLAH</small></div></footer>
+      <footer className="game-footer" id="finish"><div><strong>{settings.footer.heading}</strong><span>{settings.footer.subheading}</span><small>© {new Date().getFullYear()} {settings.footer.copyright}</small></div></footer>
       <button className="back-to-top" type="button" onClick={() => { visitSection(0); window.history.replaceState(null, "", "#about"); document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }); }} aria-label="Back to top">
         <span aria-hidden="true">↑</span><small>TOP</small>
       </button>
@@ -621,7 +634,7 @@ function AboutSection({ projects }: { projects: ArcadeProject[] }) {
   );
 }
 
-export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
+export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProject[]; settings: SiteSettings }) {
   const root = useRef<HTMLDivElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -629,18 +642,39 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   const [countdown, setCountdown] = useState("");
   const [soundOn, setSoundOn] = useState(false);
   const musicRef = useRef<MusicEngine | null>(null);
+  const audioTrackRef = useRef<HTMLAudioElement | null>(null);
+  const confirmContextRef = useRef<AudioContext | null>(null);
 
   const startMusic = () => {
+    if (settings.audio.audioUrl) {
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const context = confirmContextRef.current ?? new AudioContextClass();
+      confirmContextRef.current = context;
+      if (!audioTrackRef.current) {
+        const track = new Audio(settings.audio.audioUrl);
+        track.loop = true;
+        track.preload = "auto";
+        audioTrackRef.current = track;
+      }
+      audioTrackRef.current.volume = settings.audio.volume;
+      void audioTrackRef.current.play();
+      void context.resume();
+      return context;
+    }
     if (musicRef.current?.active) {
       void musicRef.current.context.resume();
       return musicRef.current.context;
     }
-    const engine = createArcadeMusic();
+    const engine = createArcadeMusic(settings.audio.volume);
     musicRef.current = engine;
     return engine.context;
   };
 
   const stopMusic = () => {
+    if (audioTrackRef.current) {
+      audioTrackRef.current.pause();
+      audioTrackRef.current.currentTime = 0;
+    }
     const engine = musicRef.current;
     if (!engine) return;
     engine.active = false;
@@ -714,6 +748,14 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
         void engine.context.close();
         musicRef.current = null;
       }
+      if (audioTrackRef.current) {
+        audioTrackRef.current.pause();
+        audioTrackRef.current = null;
+      }
+      if (confirmContextRef.current) {
+        void confirmContextRef.current.close();
+        confirmContextRef.current = null;
+      }
       document.body.style.overflow = "";
     };
   }, []);
@@ -734,9 +776,11 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   const startGame = () => {
     if (!ready || started) return;
     setStarted(true);
-    const audio = startMusic();
-    setSoundOn(true);
-    playConfirm(audio);
+    if (settings.audio.enabled) {
+      const audio = startMusic();
+      setSoundOn(true);
+      playConfirm(audio);
+    }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     gsap.timeline()
@@ -765,7 +809,7 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
   };
 
   return (
-    <div className="portfolio-root" ref={root}>
+    <div className="portfolio-root" ref={root} style={{ "--ink": settings.theme.ink, "--blue": settings.theme.blue, "--cyan": settings.theme.cyan, "--pink": settings.theme.pink, "--yellow": settings.theme.yellow, "--shell-yellow": settings.theme.shellYellow, "--shell-pink": settings.theme.shellPink, "--shell-blue": settings.theme.shellBlue } as CSSProperties}>
       <div className="arcade-cursor" ref={cursor} aria-hidden="true">
         <span className="arcade-cursor-ping" />
         <img className="arcade-joystick" src="/assets/arcade/icons/joystick-cursor.png" alt="" />
@@ -775,14 +819,15 @@ export function ArcadePortfolio({ projects }: { projects: ArcadeProject[] }) {
         ready={ready}
         started={started}
         onStart={startGame}
+        settings={settings.homepage}
       />
 
-      <AboutSection projects={projects} />
+      <AboutSection projects={projects} settings={settings} />
 
-      <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
+      {settings.audio.enabled && <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
         <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
-        <span><small>ARCADE RUN</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
-      </button>
+        <span><small>{settings.audio.label}</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
+      </button>}
     </div>
   );
 }
