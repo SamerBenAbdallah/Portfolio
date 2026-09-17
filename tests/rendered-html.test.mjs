@@ -83,6 +83,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /role="dialog"/);
   assert.match(component, /className="case-media-video"/);
   assert.match(component, /className="case-playlist"/);
+  assert.match(component, /case-gallery-arrow/);
+  assert.match(component, /SCROLL · DRAG · CLICK TO EXPLORE/);
   assert.match(component, /controls playsInline preload="metadata"/);
   assert.match(component, /mailto:/);
   assert.match(component, /mobile-nav-toggle/);
@@ -113,6 +115,8 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.motion-grid/);
   assert.match(styles, /\.contact-grid/);
   assert.match(styles, /\.case-overlay/);
+  assert.match(styles, /\.case-gallery img[^}]+object-fit: contain/s);
+  assert.match(styles, /\.project-route-selector[^}]+overflow-x: auto/s);
   assert.match(styles, /\.machine-screen[^}]+left: 31\.55%[^}]+top: 35\.85%/s);
   assert.match(styles, /\.machine-screen[^}]+height: 39\.35%[^}]+mask-image: linear-gradient/s);
   assert.match(styles, /\.screen-pac-dots/);

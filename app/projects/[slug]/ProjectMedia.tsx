@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { type WheelEvent, useRef, useState } from "react";
 import type { PortfolioProject, ProjectImage, ProjectVideo } from "../../lib/projects/types";
 
 export function ProjectMedia({ project }: { project: PortfolioProject }) {
   const [active, setActive] = useState(0);
+  const selectorRef = useRef<HTMLDivElement>(null);
+  const wheelNavigationAt = useRef(0);
   const images: ProjectImage[] = project.gallery_images.length
     ? project.gallery_images
     : project.cover_image
@@ -18,6 +20,21 @@ export function ProjectMedia({ project }: { project: PortfolioProject }) {
   const media = project.project_type === "motion" ? videos : images;
   const selectedImage = project.project_type === "graphic" ? images[active] : null;
   const selectedVideo = project.project_type === "motion" ? videos[active] : null;
+
+  function showMedia(index: number) {
+    const next = (index + media.length) % media.length;
+    setActive(next);
+    window.requestAnimationFrame(() => selectorRef.current?.querySelector<HTMLButtonElement>(`button[data-index="${next}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }));
+  }
+
+  function scrollMedia(event: WheelEvent<HTMLDivElement>) {
+    if (Math.abs(event.deltaY) < 8 && Math.abs(event.deltaX) < 8) return;
+    event.preventDefault();
+    const now = Date.now();
+    if (now - wheelNavigationAt.current < 380) return;
+    wheelNavigationAt.current = now;
+    showMedia(active + (event.deltaY + event.deltaX > 0 ? 1 : -1));
+  }
 
   if (!media.length) {
     return <div className="project-route-empty">MEDIA OFFLINE // CHECK BACK SOON</div>;
@@ -37,13 +54,21 @@ export function ProjectMedia({ project }: { project: PortfolioProject }) {
         )}
       </div>
       {media.length > 1 && (
-        <div className="project-route-selector" aria-label={`${project.title} media selector`}>
-          {media.map((item, index) => (
-            <button key={"src" in item ? item.src : index} className={active === index ? "active" : ""} type="button" onClick={() => setActive(index)}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{"title" in item ? item.title : `Artwork ${index + 1}`}</strong>
-            </button>
-          ))}
+        <div className="project-route-gallery">
+          <div className="project-route-selector-wrap">
+            <button className="project-route-arrow" type="button" onClick={() => showMedia(active - 1)} aria-label="Previous project media">‹</button>
+            <div className="project-route-selector" ref={selectorRef} onWheel={scrollMedia} aria-label={`${project.title} scrollable media selector`}>
+              {media.map((item, index) => (
+                <button data-index={index} key={item.src} className={active === index ? "active" : ""} type="button" onClick={() => showMedia(index)}>
+                  <img src={"title" in item ? item.poster : item.src} alt="" loading="lazy" />
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{"title" in item ? item.title : `Artwork ${index + 1}`}</strong>
+                </button>
+              ))}
+            </div>
+            <button className="project-route-arrow" type="button" onClick={() => showMedia(active + 1)} aria-label="Next project media">›</button>
+          </div>
+          <div className="project-route-gallery-meta"><strong>{String(active + 1).padStart(2, "0")} / {String(media.length).padStart(2, "0")}</strong><span>SCROLL · DRAG · CLICK TO EXPLORE</span></div>
         </div>
       )}
     </div>

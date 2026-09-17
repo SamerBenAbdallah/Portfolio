@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, type WheelEvent, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import type { ArcadeProject } from "../lib/projects/types";
 import type { SiteSettings } from "../lib/settings/types";
@@ -313,9 +313,28 @@ function ArcadeStage({
 
 function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: () => void }) {
   const closeButton = useRef<HTMLButtonElement>(null);
+  const galleryRail = useRef<HTMLDivElement>(null);
+  const wheelNavigationAt = useRef(0);
   const [activeMedia, setActiveMedia] = useState(0);
   const selectedImage = project.images?.[activeMedia];
   const selectedVideo = project.videos?.[activeMedia];
+  const imageCount = project.images?.length ?? 0;
+
+  const showImage = (index: number) => {
+    if (!imageCount) return;
+    const next = (index + imageCount) % imageCount;
+    setActiveMedia(next);
+    window.requestAnimationFrame(() => galleryRail.current?.querySelector<HTMLButtonElement>(`button[data-index="${next}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }));
+  };
+
+  const scrollGallery = (event: WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(event.deltaY) < 8 && Math.abs(event.deltaX) < 8) return;
+    event.preventDefault();
+    const now = Date.now();
+    if (now - wheelNavigationAt.current < 380) return;
+    wheelNavigationAt.current = now;
+    showImage(activeMedia + (event.deltaY + event.deltaX > 0 ? 1 : -1));
+  };
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -357,12 +376,19 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
             )}
           </div>
           {project.images && project.images.length > 1 && (
-            <div className="case-gallery" aria-label={`${project.title} gallery`}>
-              {project.images.map((image, index) => (
-                <button className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => setActiveMedia(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
-                  <img src={image.src} alt="" loading="lazy" /><span>{String(index + 1).padStart(2, "0")}</span>
-                </button>
-              ))}
+            <div className="case-gallery-shell">
+              <div className="case-gallery-nav">
+                <button className="case-gallery-arrow" type="button" onClick={() => showImage(activeMedia - 1)} aria-label="Previous project image">‹</button>
+                <div className="case-gallery" ref={galleryRail} onWheel={scrollGallery} aria-label={`${project.title} scrollable gallery`}>
+                  {project.images.map((image, index) => (
+                    <button data-index={index} className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => showImage(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
+                      <img src={image.src} alt="" loading="lazy" /><span>{String(index + 1).padStart(2, "0")}</span>
+                    </button>
+                  ))}
+                </div>
+                <button className="case-gallery-arrow" type="button" onClick={() => showImage(activeMedia + 1)} aria-label="Next project image">›</button>
+              </div>
+              <div className="case-gallery-meta"><strong>{String(activeMedia + 1).padStart(2, "0")} / {String(project.images.length).padStart(2, "0")}</strong><span>SCROLL · DRAG · CLICK TO EXPLORE</span></div>
             </div>
           )}
           {project.videos && (
