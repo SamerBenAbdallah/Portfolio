@@ -54,6 +54,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /startGame/);
   assert.match(component, /createArcadeMusic/);
   assert.match(settings, /ARCADE RUN/);
+  assert.doesNotMatch(component, /DEFAULT_SOUNDTRACK_URL/);
   assert.match(component, /useState\(false\).*musicRef/s);
   assert.match(component, /master\.gain\.setValueAtTime\(volume/);
   assert.match(component, /const chordProgression/);
@@ -85,8 +86,14 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(component, /className="case-playlist"/);
   assert.match(component, /case-gallery-arrow/);
   assert.match(component, /SCROLL · DRAG · CLICK TO EXPLORE/);
+  assert.doesNotMatch(component, /SCROLL ON ARTWORK TO BROWSE/);
+  assert.match(component, /ProjectToolIcons/);
+  assert.match(component, /mediaCount > 1 \? scrollPreview/);
   assert.match(component, /controls playsInline preload="metadata"/);
-  assert.match(component, /mailto:/);
+  assert.doesNotMatch(component, /mailto:/);
+  assert.match(component, /fetch\("\/api\/contact"/);
+  assert.doesNotMatch(component, />VIEW PROJECT</);
+  assert.doesNotMatch(component, />WATCH PROJECT</);
   assert.match(component, /mobile-nav-toggle/);
   assert.match(component, /id="finish"/);
   assert.doesNotMatch(component, /official-site-icon\.png/);
@@ -117,6 +124,7 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(styles, /\.case-overlay/);
   assert.match(styles, /\.case-gallery img[^}]+object-fit: contain/s);
   assert.match(styles, /\.project-route-selector[^}]+overflow-x: auto/s);
+  assert.match(styles, /\.project-route-stage\.graphic[^}]+overflow: auto/s);
   assert.match(styles, /\.machine-screen[^}]+left: 31\.55%[^}]+top: 35\.85%/s);
   assert.match(styles, /\.machine-screen[^}]+height: 39\.35%[^}]+mask-image: linear-gradient/s);
   assert.match(styles, /\.screen-pac-dots/);
@@ -129,9 +137,11 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(layout, /getSiteSettings/);
   assert.match(settings, /og-v3\.png/);
 
-  const [migration, settingsMigration, repository, admin, settingsAdmin, projectPage] = await Promise.all([
+  const [migration, settingsMigration, contactMigration, contactRoute, repository, admin, settingsAdmin, projectPage] = await Promise.all([
     readFile(new URL("../supabase/migrations/202609160001_portfolio_cms.sql", import.meta.url), "utf8"),
     readFile(new URL("../supabase/migrations/202609170001_site_settings.sql", import.meta.url), "utf8"),
+    readFile(new URL("../supabase/migrations/202609170002_contact_messages.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/contact/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/projects/repository.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/SiteSettingsEditor.tsx", import.meta.url), "utf8"),
@@ -142,15 +152,20 @@ test("ships the complete production artwork and interaction source", async () =>
   assert.match(migration, /project-media/);
   assert.match(settingsMigration, /site_settings/);
   assert.match(settingsMigration, /site-assets/);
+  assert.match(contactMigration, /contact_messages/);
+  assert.match(contactMigration, /Public can submit contact messages/);
+  assert.match(contactRoute, /from\("contact_messages"\)\.insert/);
   assert.match(repository, /\.eq\("published", true\)/);
   assert.match(repository, /\.order\("display_order"/);
   assert.match(admin, /Permanently delete/);
   assert.match(admin, /admin-action-feedback/);
   assert.match(admin, /Cartridge sticker \/ project cover/);
   assert.match(admin, /editable arcade-cartridge sticker/);
+  assert.match(admin, /Website messages/);
   assert.match(settingsAdmin, /Publish settings/);
   assert.match(settingsAdmin, /Favicon \/ website icon/);
   assert.match(projectPage, /getPublishedProjectBySlug/);
+  assert.match(projectPage, /ProjectToolIcons/);
 
   await Promise.all([
     access(new URL("../public/assets/arcade/v2/hero-scene-v2.png", import.meta.url)),

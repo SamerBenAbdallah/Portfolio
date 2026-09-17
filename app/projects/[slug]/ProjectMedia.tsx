@@ -30,6 +30,7 @@ export function ProjectMedia({ project }: { project: PortfolioProject }) {
   function scrollMedia(event: WheelEvent<HTMLDivElement>) {
     if (Math.abs(event.deltaY) < 8 && Math.abs(event.deltaX) < 8) return;
     event.preventDefault();
+    event.stopPropagation();
     const now = Date.now();
     if (now - wheelNavigationAt.current < 380) return;
     wheelNavigationAt.current = now;
@@ -42,7 +43,10 @@ export function ProjectMedia({ project }: { project: PortfolioProject }) {
 
   return (
     <div className="project-route-media">
-      <div className={`project-route-stage ${project.longform ? "longform" : ""}`}>
+      <div
+        className={`project-route-stage ${project.project_type} ${project.project_type === "motion" && media.length > 1 ? "wheel-browse" : ""} ${project.longform ? "longform" : ""}`}
+        onWheel={project.project_type === "motion" && media.length > 1 ? scrollMedia : undefined}
+      >
         {selectedImage && <img key={selectedImage.src} src={selectedImage.src} alt={selectedImage.alt} />}
         {selectedVideo && (
           // The CMS accepts legacy visual-only motion clips without a caption sidecar.
@@ -52,6 +56,7 @@ export function ProjectMedia({ project }: { project: PortfolioProject }) {
             Your browser does not support embedded video.
           </video>
         )}
+        {selectedImage && <span className="project-route-scroll-hint">FULL ARTWORK · SCROLL TO EXPLORE</span>}
       </div>
       {media.length > 1 && (
         <div className="project-route-gallery">

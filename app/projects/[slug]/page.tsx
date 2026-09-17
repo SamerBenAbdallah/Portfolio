@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPublishedProjectBySlug } from "../../lib/projects/repository";
+import { ProjectToolIcons } from "../../lib/projects/ProjectToolIcons";
 import { ProjectMedia } from "./ProjectMedia";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +54,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <dl>
             {project.client && <div><dt>CLIENT</dt><dd>{project.client}</dd></div>}
             {project.year && <div><dt>YEAR</dt><dd>{project.year}</dd></div>}
-            <div><dt>TOOLS</dt><dd>{project.tools.join(" + ") || "—"}</dd></div>
+            <div><dt>TOOLS</dt><dd>{project.tools.length ? <ProjectToolIcons tools={project.tools} /> : "—"}</dd></div>
             <div><dt>OUTPUT</dt><dd>{project.deliverables.join(" / ") || "—"}</dd></div>
           </dl>
         </section>

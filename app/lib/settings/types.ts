@@ -204,6 +204,8 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
   const stats = Array.isArray(profile.stats) ? profile.stats.slice(0, 8).map(record) : [];
   const skills = Array.isArray(profile.skills) ? profile.skills.slice(0, 16).map(record) : [];
   const nav = Array.isArray(sections.navigation) ? sections.navigation : [];
+  const savedAudioUrl = typeof audio.audioUrl === "string" ? audio.audioUrl.trim().slice(0, 1200) : defaults.audio.audioUrl;
+  const retiredSoundtrack = /toru-always-with-me-ghibli\.mp3(?:$|\?)/i.test(savedAudioUrl);
 
   return {
     branding: {
@@ -290,8 +292,8 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
     },
     audio: {
       enabled: typeof audio.enabled === "boolean" ? audio.enabled : defaults.audio.enabled,
-      label: text(audio.label, defaults.audio.label, 80),
-      audioUrl: typeof audio.audioUrl === "string" ? audio.audioUrl.trim().slice(0, 1200) : defaults.audio.audioUrl,
+      label: retiredSoundtrack ? defaults.audio.label : text(audio.label, defaults.audio.label, 80),
+      audioUrl: retiredSoundtrack ? "" : savedAudioUrl,
       volume: Math.min(1, Math.max(0, typeof audio.volume === "number" ? audio.volume : defaults.audio.volume)),
     },
   };

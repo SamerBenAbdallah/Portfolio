@@ -6,6 +6,7 @@ import { createClient } from "../lib/supabase/client";
 import type { PortfolioProject, ProjectInput } from "../lib/projects/types";
 import { slugifyProjectTitle } from "../lib/projects/types";
 import type { SiteSettings } from "../lib/settings/types";
+import type { ContactMessage } from "../lib/contact/types";
 import { SiteSettingsEditor } from "./SiteSettingsEditor";
 
 type EditableProject = ProjectInput & { id?: string };
@@ -48,7 +49,12 @@ function splitList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
-export function AdminDashboard({ initialProjects, initialSettings, email }: { initialProjects: PortfolioProject[]; initialSettings: SiteSettings; email: string }) {
+function formatMessageDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+}
+
+export function AdminDashboard({ initialProjects, initialSettings, initialMessages, email }: { initialProjects: PortfolioProject[]; initialSettings: SiteSettings; initialMessages: ContactMessage[]; email: string }) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [draft, setDraft] = useState<EditableProject>(() => blankProject(initialProjects.length));
@@ -221,8 +227,23 @@ export function AdminDashboard({ initialProjects, initialSettings, email }: { in
     <div className="admin-shell">
       <header className="admin-topbar">
         <div><strong>Player01 Portfolio CMS</strong><small>{email}</small></div>
-        <div><a href="#site-settings">Site settings</a><a href="#projects">Projects</a><a href="/" target="_blank">View portfolio ↗</a><button type="button" onClick={signOut}>Sign out</button></div>
+        <div><a href="#messages">Messages</a><a href="#site-settings">Site settings</a><a href="#projects">Projects</a><a href="/" target="_blank">View portfolio ↗</a><button type="button" onClick={signOut}>Sign out</button></div>
       </header>
+      <div className="admin-inbox-wrap">
+        <section className="admin-panel admin-inbox" id="messages">
+          <div className="admin-panel-header"><div><h2>Website messages ({initialMessages.length})</h2><p className="admin-help">Project enquiries sent from the portfolio contact form appear here.</p></div></div>
+          <div className="admin-message-list">
+            {initialMessages.map((item) => (
+              <article className="admin-message" key={item.id}>
+                <header><div><strong>{item.name}</strong><span>{item.email}</span></div><time dateTime={item.created_at}>{formatMessageDate(item.created_at)}</time></header>
+                <p className="admin-message-type">{item.project_type}</p>
+                <p>{item.message}</p>
+              </article>
+            ))}
+            {!initialMessages.length && <p className="admin-empty-inbox">No messages yet. New portfolio enquiries will appear here.</p>}
+          </div>
+        </section>
+      </div>
       <div className="admin-settings-wrap"><SiteSettingsEditor initialSettings={initialSettings} /></div>
       <main className="admin-main">
         <aside className="admin-panel admin-list-panel" id="projects">

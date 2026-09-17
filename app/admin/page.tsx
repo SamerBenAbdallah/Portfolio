@@ -4,12 +4,13 @@ import { isSupabaseConfigured } from "../lib/supabase/config";
 import { AdminDashboard } from "./AdminDashboard";
 import { SetupNotice } from "./SetupNotice";
 import { getAdminSiteSettings } from "../lib/settings/repository";
+import type { ContactMessage } from "../lib/contact/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
-  const { user, isAdmin } = await requirePortfolioAdmin();
+  const { user, isAdmin, supabase } = await requirePortfolioAdmin();
   if (!user) redirect("/admin/login");
   if (!isAdmin) {
     return (
@@ -23,6 +24,10 @@ export default async function AdminPage() {
     );
   }
 
-  const [projects, settings] = await Promise.all([getAdminProjects(), getAdminSiteSettings()]);
-  return <AdminDashboard initialProjects={projects} initialSettings={settings} email={user.email ?? "Admin"} />;
+  const [projects, settings, messages] = await Promise.all([
+    getAdminProjects(),
+    getAdminSiteSettings(),
+    supabase.from("contact_messages").select("*").order("created_at", { ascending: false }).limit(100),
+  ]);
+  return <AdminDashboard initialProjects={projects} initialSettings={settings} initialMessages={(messages.data ?? []) as ContactMessage[]} email={user.email ?? "Admin"} />;
 }

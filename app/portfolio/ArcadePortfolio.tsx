@@ -3,6 +3,7 @@
 import { type CSSProperties, type FormEvent, type WheelEvent, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import type { ArcadeProject } from "../lib/projects/types";
+import { ProjectToolIcons } from "../lib/projects/ProjectToolIcons";
 import type { SiteSettings } from "../lib/settings/types";
 
 type MusicEngine = {
@@ -319,21 +320,23 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
   const selectedImage = project.images?.[activeMedia];
   const selectedVideo = project.videos?.[activeMedia];
   const imageCount = project.images?.length ?? 0;
+  const mediaCount = project.kind === "motion" ? project.videos?.length ?? 0 : imageCount;
 
-  const showImage = (index: number) => {
-    if (!imageCount) return;
-    const next = (index + imageCount) % imageCount;
+  const showMedia = (index: number) => {
+    if (!mediaCount) return;
+    const next = (index + mediaCount) % mediaCount;
     setActiveMedia(next);
     window.requestAnimationFrame(() => galleryRail.current?.querySelector<HTMLButtonElement>(`button[data-index="${next}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }));
   };
 
-  const scrollGallery = (event: WheelEvent<HTMLDivElement>) => {
+  const scrollPreview = (event: WheelEvent<HTMLDivElement>) => {
     if (Math.abs(event.deltaY) < 8 && Math.abs(event.deltaX) < 8) return;
     event.preventDefault();
+    event.stopPropagation();
     const now = Date.now();
     if (now - wheelNavigationAt.current < 380) return;
     wheelNavigationAt.current = now;
-    showImage(activeMedia + (event.deltaY + event.deltaX > 0 ? 1 : -1));
+    showMedia(activeMedia + (event.deltaY + event.deltaX > 0 ? 1 : -1));
   };
 
   useEffect(() => {
@@ -362,7 +365,10 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
         <button ref={closeButton} className="case-close" type="button" onClick={onClose} aria-label="Close project case file">×</button>
         <div className={`case-preview ${project.kind} ${project.longform ? "longform" : ""}`}>
           <span className="case-status">{`${project.kind === "motion" ? "MOTION FEED" : "DESIGN FILE"} // ONLINE`}</span>
-          <div className="case-preview-stage">
+          <div
+            className={`case-preview-stage ${!project.longform && mediaCount > 1 ? "wheel-browse" : ""}`}
+            onWheel={!project.longform && mediaCount > 1 ? scrollPreview : undefined}
+          >
             {project.kind === "graphic" && selectedImage && (
               <img className="case-media-image" src={selectedImage.src} alt={selectedImage.alt} />
             )}
@@ -378,15 +384,15 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
           {project.images && project.images.length > 1 && (
             <div className="case-gallery-shell">
               <div className="case-gallery-nav">
-                <button className="case-gallery-arrow" type="button" onClick={() => showImage(activeMedia - 1)} aria-label="Previous project image">‹</button>
-                <div className="case-gallery" ref={galleryRail} onWheel={scrollGallery} aria-label={`${project.title} scrollable gallery`}>
+                <button className="case-gallery-arrow" type="button" onClick={() => showMedia(activeMedia - 1)} aria-label="Previous project image">‹</button>
+                <div className="case-gallery" ref={galleryRail} onWheel={scrollPreview} aria-label={`${project.title} scrollable gallery`}>
                   {project.images.map((image, index) => (
-                    <button data-index={index} className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => showImage(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
+                    <button data-index={index} className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => showMedia(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
                       <img src={image.src} alt="" loading="lazy" /><span>{String(index + 1).padStart(2, "0")}</span>
                     </button>
                   ))}
                 </div>
-                <button className="case-gallery-arrow" type="button" onClick={() => showImage(activeMedia + 1)} aria-label="Next project image">›</button>
+                <button className="case-gallery-arrow" type="button" onClick={() => showMedia(activeMedia + 1)} aria-label="Next project image">›</button>
               </div>
               <div className="case-gallery-meta"><strong>{String(activeMedia + 1).padStart(2, "0")} / {String(project.images.length).padStart(2, "0")}</strong><span>SCROLL · DRAG · CLICK TO EXPLORE</span></div>
             </div>
@@ -394,7 +400,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
           {project.videos && (
             <div className="case-playlist" aria-label={`${project.title} video playlist`}>
               {project.videos.map((video, index) => (
-                <button className={index === activeMedia ? "active" : ""} type="button" key={video.src} onClick={() => setActiveMedia(index)}>
+                <button className={index === activeMedia ? "active" : ""} type="button" key={video.src} onClick={() => showMedia(index)}>
                   <img src={video.poster} alt="" loading="lazy" /><span><strong>{video.title}</strong><small>{video.duration}</small></span>
                 </button>
               ))}
@@ -406,8 +412,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
           <h2 id="case-title">{project.title}</h2>
           <p>{project.description}</p>
           <div className="case-data-grid">
-            <div><span>TOOLS</span><strong>{project.tools.join(" + ")}</strong></div>
-            {project.duration && <div><span>DURATION</span><strong>{project.duration}</strong></div>}
+            <div><span>TOOLS</span><ProjectToolIcons tools={project.tools} /></div>
             <div><span>OUTPUT</span><strong>{project.deliverables.join(" / ")}</strong></div>
           </div>
           <a className="case-page-link" href={`/projects/${project.slug}`}>OPEN FULL CASE FILE <span>↗</span></a>
@@ -436,7 +441,9 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ArcadeProject | null>(null);
   const [contactStatus, setContactStatus] = useState("");
-  const lastProjectTrigger = useRef<HTMLButtonElement | null>(null);
+  const [contactBusy, setContactBusy] = useState(false);
+  const contactOpenedAt = useRef(0);
+  const lastProjectTrigger = useRef<HTMLElement | null>(null);
   const activeSectionRef = useRef(0);
   const heartLevelRef = useRef(0);
   const heartTargetRef = useRef(0);
@@ -491,7 +498,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
     setMobileMenuOpen(false);
   };
 
-  const openProject = (project: ArcadeProject, trigger: HTMLButtonElement) => {
+  const openProject = (project: ArcadeProject, trigger: HTMLElement) => {
     lastProjectTrigger.current = trigger;
     setSelectedProject(project);
   };
@@ -502,6 +509,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
   };
 
   useEffect(() => {
+    contactOpenedAt.current = Date.now();
     const sectionIds = ["about", "work", "motion", "contact", "finish"];
     let scrollFrame = 0;
     const syncSectionFromHash = () => {
@@ -537,7 +545,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
     };
   }, []);
 
-  const submitContact = (event: FormEvent<HTMLFormElement>) => {
+  const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -545,17 +553,31 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
     const email = String(formData.get("email") ?? "").trim();
     const projectType = String(formData.get("projectType") ?? "").trim();
     const message = String(formData.get("message") ?? "").trim();
+    const companyWebsite = String(formData.get("companyWebsite") ?? "").trim();
 
     if (!name || !email || !projectType || !message || !/^\S+@\S+\.\S+$/.test(email)) {
       setContactStatus("CHECK INPUT // COMPLETE EVERY FIELD WITH A VALID EMAIL");
       return;
     }
 
-    const subject = encodeURIComponent(`${projectType} project inquiry from ${name}`);
-    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\nProject type: ${projectType}\n\n${message}`);
-    setContactStatus("MESSAGE READY // OPENING YOUR EMAIL APP");
-    window.location.href = `mailto:${data.contactEmail}?subject=${subject}&body=${body}`;
-    form.reset();
+    setContactBusy(true);
+    setContactStatus("TRANSMITTING // SENDING YOUR MISSION BRIEF");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, email, projectType, message, companyWebsite, openedAt: contactOpenedAt.current }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "The message could not be sent.");
+      setContactStatus("MESSAGE RECEIVED // THANK YOU, I WILL REPLY SOON");
+      form.reset();
+      contactOpenedAt.current = Date.now();
+    } catch (error) {
+      setContactStatus(`TRANSMISSION FAILED // ${error instanceof Error ? error.message : "PLEASE TRY AGAIN"}`);
+    } finally {
+      setContactBusy(false);
+    }
   };
 
   return (
@@ -604,12 +626,12 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
           <header className="level-heading"><p>{settings.sections.graphicEyebrow}</p><h2 id="work-heading"><span>{settings.sections.graphicHeadingAccent}</span> {settings.sections.graphicHeadingRest}</h2><p className="level-intro">{settings.sections.graphicIntro}</p></header>
           <div className="project-grid">
             {graphicProjects.map((project, index) => (
-              <article className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+              <div className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
                 <span className="cartridge-vents" aria-hidden="true" />
-                <button className="project-art" type="button" aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></button>
-                <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>VIEW PROJECT <b>↗</b></button></div>
+                <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></div>
+                <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools"><ProjectToolIcons tools={project.tools} /></div></div>
                 <span className="cartridge-contacts" aria-hidden="true" />
-              </article>
+              </div>
             ))}
             {!graphicProjects.length && <p className="arcade-empty-state">NO GRAPHIC CASE FILES PUBLISHED // CHECK BACK SOON</p>}
           </div>
@@ -622,12 +644,12 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
           <header className="level-heading"><p>{settings.sections.motionEyebrow}</p><h2 id="motion-heading"><span>{settings.sections.motionHeadingAccent}</span> {settings.sections.motionHeadingRest}</h2><p className="level-intro">{settings.sections.motionIntro}</p></header>
           <div className="motion-grid">
             {motionProjects.map((project) => (
-              <article className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}>
+              <div className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
                 <span className="cartridge-vents" aria-hidden="true" />
-                <button className="motion-screen" type="button" aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)}><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong></button>
-                <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools">{project.tools.map((tool) => <small key={tool}>{tool}</small>)}</div><button type="button" onClick={(event) => openProject(project, event.currentTarget)}>WATCH PROJECT <b>▶</b></button></div>
+                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong></div>
+                <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools"><ProjectToolIcons tools={project.tools} /></div></div>
                 <span className="cartridge-contacts" aria-hidden="true" />
-              </article>
+              </div>
             ))}
             {!motionProjects.length && <p className="arcade-empty-state">NO MOTION CASE FILES PUBLISHED // CHECK BACK SOON</p>}
           </div>
@@ -639,12 +661,13 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
           <div className="level-kicker"><span>{settings.sections.contactLevelLabel}</span><i /><small>{settings.sections.contactArchiveLabel}</small></div>
           <header className="level-heading"><p>{settings.sections.contactEyebrow}</p><h2 id="contact-heading"><span>{settings.sections.contactHeadingAccent}</span> {settings.sections.contactHeadingRest}</h2><p className="level-intro">{settings.sections.contactIntro}</p></header>
           <div className="contact-grid">
-            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>{settings.contact.statusLabel}</p><h3>{settings.contact.availabilityHeading}</h3><a href={`mailto:${data.contactEmail}`}>{data.contactEmail}</a><ul>{settings.contact.services.map((service, index) => <li key={service}><span>{String(index + 1).padStart(2, "0")}</span> {service}</li>)}</ul><div className="response-time"><small>{settings.contact.responseLabel}</small><strong>{settings.contact.responseValue}</strong></div></aside>
+            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>{settings.contact.statusLabel}</p><h3>{settings.contact.availabilityHeading}</h3><span className="contact-email">{data.contactEmail}</span><ul>{settings.contact.services.map((service, index) => <li key={service}><span>{String(index + 1).padStart(2, "0")}</span> {service}</li>)}</ul><div className="response-time"><small>{settings.contact.responseLabel}</small><strong>{settings.contact.responseValue}</strong></div></aside>
             <form className="contact-form" onSubmit={submitContact} noValidate>
+              <label className="contact-honeypot" aria-hidden="true"><span>WEBSITE</span><input name="companyWebsite" type="text" tabIndex={-1} autoComplete="off" /></label>
               <div className="form-row"><label><span>PLAYER NAME</span><input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label><span>EMAIL ADDRESS</span><input name="email" type="email" autoComplete="email" placeholder="you@example.com" /></label></div>
               <label><span>MISSION TYPE</span><select name="projectType" defaultValue=""><option value="" disabled>Select a project type</option><option>Graphic Design</option><option>Motion Design</option><option>Brand Identity</option><option>Social Campaign</option><option>Something Else</option></select></label>
               <label><span>MISSION BRIEF</span><textarea name="message" rows={6} placeholder="Tell me what you want to create..." /></label>
-              <button className="send-button" type="submit">{settings.contact.sendButtonLabel} <span>▶</span></button>
+              <button className="send-button" type="submit" disabled={contactBusy}>{contactBusy ? "SENDING..." : settings.contact.sendButtonLabel} <span>▶</span></button>
               <p className={`form-status ${contactStatus ? "is-visible" : ""}`} role="status">{contactStatus || "READY // WAITING FOR INPUT"}</p>
             </form>
           </div>
@@ -670,14 +693,15 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
   const musicRef = useRef<MusicEngine | null>(null);
   const audioTrackRef = useRef<HTMLAudioElement | null>(null);
   const confirmContextRef = useRef<AudioContext | null>(null);
+  const soundtrackUrl = settings.audio.audioUrl;
 
   const startMusic = () => {
-    if (settings.audio.audioUrl) {
+    if (soundtrackUrl) {
       const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const context = confirmContextRef.current ?? new AudioContextClass();
       confirmContextRef.current = context;
       if (!audioTrackRef.current) {
-        const track = new Audio(settings.audio.audioUrl);
+        const track = new Audio(soundtrackUrl);
         track.loop = true;
         track.preload = "auto";
         audioTrackRef.current = track;
