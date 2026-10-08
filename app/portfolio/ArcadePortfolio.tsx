@@ -15,6 +15,8 @@ type MusicEngine = {
   active: boolean;
 };
 
+type UiSfx = "click" | "exit";
+
 const melodyBars = [
   [76, null, 79, 83, null, 81, 79, null, 76, null, 74, 76, 79, null, 81, null],
   [83, null, 81, 79, 76, null, 74, null, 71, null, 74, 76, null, 79, 76, null],
@@ -93,6 +95,39 @@ function scheduleSnare(context: AudioContext, destination: AudioNode, time: numb
   gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.1);
   source.connect(filter).connect(gain).connect(destination);
   source.start(time);
+}
+
+function playArcadeSfx(context: AudioContext, kind: UiSfx, siteVolume: number) {
+  const now = context.currentTime;
+  const master = context.createGain();
+  const filter = context.createBiquadFilter();
+  const volume = Math.min(0.085, Math.max(0.025, siteVolume * 0.16));
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(kind === "click" ? 2600 : 1800, now);
+  master.gain.setValueAtTime(volume, now);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + (kind === "click" ? 0.09 : 0.18));
+  master.connect(filter).connect(context.destination);
+
+  const primary = context.createOscillator();
+  primary.type = "square";
+  primary.frequency.setValueAtTime(kind === "click" ? 920 : 560, now);
+  primary.frequency.exponentialRampToValueAtTime(kind === "click" ? 660 : 210, now + (kind === "click" ? 0.075 : 0.16));
+  primary.connect(master);
+  primary.start(now);
+  primary.stop(now + (kind === "click" ? 0.1 : 0.19));
+
+  if (kind === "exit") {
+    const echo = context.createOscillator();
+    const echoGain = context.createGain();
+    echo.type = "triangle";
+    echo.frequency.setValueAtTime(280, now + 0.045);
+    echo.frequency.exponentialRampToValueAtTime(130, now + 0.18);
+    echoGain.gain.setValueAtTime(volume * 0.7, now + 0.045);
+    echoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+    echo.connect(echoGain).connect(filter);
+    echo.start(now + 0.045);
+    echo.stop(now + 0.2);
+  }
 }
 
 function createArcadeMusic(volume = 0.38): MusicEngine {
@@ -742,9 +777,10 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     if (!cursorElement || !finePointer.matches || reducedMotion.matches) return;
 
     const moveCursor = (event: PointerEvent) => {
-      const cursorSize = 32;
-      const x = Math.min(window.innerWidth - cursorSize - 2, Math.max(2, event.clientX - 12));
-      const y = Math.min(window.innerHeight - cursorSize - 2, Math.max(2, event.clientY - 6));
+      const cursorWidth = 36;
+      const cursorHeight = 40;
+      const x = Math.min(window.innerWidth - cursorWidth, Math.max(0, event.clientX - 3));
+      const y = Math.min(window.innerHeight - cursorHeight, Math.max(0, event.clientY - 3));
       cursorElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       cursorElement.classList.add("is-visible");
       const target = event.target;
@@ -769,6 +805,34 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       document.documentElement.removeEventListener("mouseleave", hideCursor);
     };
   }, []);
+
+  useEffect(() => {
+    if (!soundOn) return;
+
+    const playSfx = (kind: UiSfx) => {
+      const audio = confirmContextRef.current ?? musicRef.current?.context;
+      if (!audio || audio.state === "closed") return;
+      void audio.resume();
+      playArcadeSfx(audio, kind, settings.audio.volume);
+    };
+    const handleUiClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const interactive = target.closest("a, button, select, [role='button']");
+      if (!interactive || interactive.matches(".machine-screen, .music-toggle")) return;
+      playSfx(interactive.matches(".case-close, .back-to-top, [data-sfx='exit']") ? "exit" : "click");
+    };
+    const handleUiKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && document.querySelector(".case-overlay")) playSfx("exit");
+    };
+
+    document.addEventListener("click", handleUiClick, true);
+    window.addEventListener("keydown", handleUiKey, true);
+    return () => {
+      document.removeEventListener("click", handleUiClick, true);
+      window.removeEventListener("keydown", handleUiKey, true);
+    };
+  }, [settings.audio.volume, soundOn]);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -850,11 +914,14 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
 
   const toggleMusic = () => {
     if (soundOn) {
+      const audio = confirmContextRef.current ?? musicRef.current?.context;
+      if (audio && audio.state !== "closed") playArcadeSfx(audio, "click", settings.audio.volume);
       stopMusic();
       setSoundOn(false);
     } else {
       setSoundOn(true);
-      startMusic();
+      const audio = startMusic();
+      playArcadeSfx(audio, "click", settings.audio.volume);
     }
   };
 
@@ -862,7 +929,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     <div className="portfolio-root" ref={root} style={{ "--ink": settings.theme.ink, "--blue": settings.theme.blue, "--cyan": settings.theme.cyan, "--pink": settings.theme.pink, "--yellow": settings.theme.yellow, "--shell-yellow": settings.theme.shellYellow, "--shell-pink": settings.theme.shellPink, "--shell-blue": settings.theme.shellBlue } as CSSProperties}>
       <div className="arcade-cursor" ref={cursor} aria-hidden="true">
         <span className="arcade-cursor-ping" />
-        <img className="arcade-joystick" src="/assets/arcade/icons/joystick-cursor.png" alt="" />
+        <img className="arcade-pointer" src="/assets/arcade/icons/pixel-arrow-cursor-bw.png" alt="" />
       </div>
       <ArcadeStage
         countdown={countdown}
