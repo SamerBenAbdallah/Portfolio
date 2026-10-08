@@ -192,13 +192,16 @@ function ArcadeStage({
   return (
     <section className="arcade-stage" aria-label="Press start scene">
       <div className="arcade-artboard">
-        <img
-          className="arcade-room-art"
-          src={settings.arcadeImage}
-          alt={settings.arcadeImageAlt}
-          fetchPriority="high"
-          draggable={false}
-        />
+        <picture>
+          <source media="(max-width: 720px)" srcSet="/assets/arcade/v2/arcade-room-v2-mobile.png" />
+          <img
+            className="arcade-room-art"
+            src={settings.arcadeImage}
+            alt={settings.arcadeImageAlt}
+            fetchPriority="high"
+            draggable={false}
+          />
+        </picture>
 
         <div className="removed-marquee" aria-hidden="true" hidden>
           <span>▦</span>

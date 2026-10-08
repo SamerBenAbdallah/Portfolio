@@ -25,6 +25,7 @@ test("server-renders the arcade portfolio experience", async () => {
   assert.match(html, /after-effects\.svg/i);
   assert.doesNotMatch(html, /Figma/i);
   assert.match(html, /arcade-room-v2\.png/i);
+  assert.match(html, /arcade-room-v2-mobile\.png/i);
   assert.doesNotMatch(html, /hero-scene-v2\.png|portfolio-title-v2\.png/i);
   assert.match(html, /Press start to enter the portfolio/i);
   assert.match(html, /PLAYER 1 \/\/ INSERT COIN/i);
@@ -170,6 +171,7 @@ test("ships the complete production artwork and interaction source", async () =>
   await Promise.all([
     access(new URL("../public/assets/arcade/v2/hero-scene-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/arcade-room-v2.png", import.meta.url)),
+    access(new URL("../public/assets/arcade/v2/arcade-room-v2-mobile.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/player-avatar-v2.png", import.meta.url)),
     access(new URL("../public/assets/arcade/v2/portfolio-title-v2.png", import.meta.url)),
     access(new URL("../public/og-v3.png", import.meta.url)),

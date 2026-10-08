@@ -431,7 +431,10 @@ img { max-width: 100%; }
 }
 
 @media (max-width: 720px) {
-  .arcade-artboard { width: max(122vw, 177.68vh); }
+  .arcade-artboard { top: -4svh; width: max(108vw, 60.8svh); height: max(108svh, 191.8vw); }
+  .machine-screen { left: 25.4%; top: 29.6%; width: 49.2%; height: 24.4%; border-radius: 13% / 11%; }
+  .screen-display small { margin-top: 1.2vh; }
+  .screen-display em { margin-top: .8vh; }
   .start-hint { display: none; }
   .about-shell { padding-inline: 16px; }
   .about-grid { grid-template-columns: 1fr; }
@@ -455,8 +458,8 @@ img { max-width: 100%; }
 }
 
 @media (max-width: 450px) {
-  .arcade-artboard { width: max(168vw, 177.68vh); }
-  .screen-display strong { font-size: clamp(2.1rem, 7.2vh, 3.8rem); }
+  .screen-display strong { font-size: clamp(1.75rem, 6.1vh, 3.35rem); }
+  .screen-display em { padding: .38em .72em .3em; font-size: clamp(.3rem, .67vh, .46rem); }
   .music-toggle { right: 9px; bottom: 9px; min-width: 124px; padding: 7px 9px 6px; }
   .back-to-top { right: 42px; bottom: 72px; width: 48px; height: 58px; }
   .game-nav { min-height: 60px; padding-inline: 10px; }
