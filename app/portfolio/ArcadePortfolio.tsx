@@ -17,6 +17,10 @@ type MusicEngine = {
 
 type UiSfx = "click" | "exit";
 
+function displayTitle(value: string) {
+  return value.split(/(I)/g).map((part, index) => part === "I" ? <span className="readable-title-i" key={`i-${index}`}>I</span> : part);
+}
+
 const melodyBars = [
   [76, null, 79, 83, null, 81, 79, null, 76, null, 74, 76, 79, null, 81, null],
   [83, null, 81, 79, 76, null, 74, null, 71, null, 74, 76, null, 79, 76, null],
@@ -216,7 +220,7 @@ function ArcadeStage({
         >
           <span className="screen-scanlines" aria-hidden="true" />
           {countdown ? (
-            <span className={`countdown ${countdown === "GO!" ? "go" : ""}`}>{countdown}</span>
+            <span className={`countdown ${countdown === "GO" ? "go" : ""}`}>{countdown}</span>
           ) : (
             <span className="screen-display">
               <span className="screen-score" aria-hidden="true">
@@ -461,6 +465,28 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
   );
 }
 
+function MotionLivePreview({ src, poster }: { src: string; poster?: string }) {
+  const previewRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const preview = previewRef.current;
+    if (!preview) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) void preview.play().catch(() => undefined);
+      else preview.pause();
+    }, { rootMargin: "120px 0px", threshold: 0.12 });
+
+    observer.observe(preview);
+    return () => {
+      observer.disconnect();
+      preview.pause();
+    };
+  }, [src]);
+
+  return <video ref={previewRef} className="motion-poster motion-live-preview" src={src} poster={poster} muted loop playsInline autoPlay preload="metadata" onMouseEnter={(event) => void event.currentTarget.play().catch(() => undefined)} />;
+}
+
 function AboutSection({ projects, settings }: { projects: ArcadeProject[]; settings: SiteSettings }) {
   const data = {
     playerLabel: settings.profile.name,
@@ -473,6 +499,8 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
     contactEmail: settings.contact.email,
     navigation: settings.sections.navigation,
   };
+  const [primaryName, ...secondaryNameParts] = data.playerLabel.trim().split(/\s+/);
+  const secondaryName = secondaryNameParts.join(" ");
   const [activeSection, setActiveSection] = useState(0);
   const [heartLevel, setHeartLevel] = useState(0);
   const [breakingHeart, setBreakingHeart] = useState<number | null>(null);
@@ -649,7 +677,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
         <div className="about-grid">
           <figure className="profile-panel"><img src={data.profileImage} alt={`Pixel-art portrait of ${data.playerLabel}`} /><figcaption>{settings.profile.profileCaption}</figcaption></figure>
           <div className="about-copy">
-            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>{settings.profile.selectedLabel}</p><h1 id="about-heading"><strong>{data.playerLabel}</strong></h1></div></div>
+            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>{settings.profile.selectedLabel}</p><h1 id="about-heading"><strong>{secondaryName && <span className="name-secondary">{secondaryName}</span>}<span className="name-primary">{primaryName}</span></strong></h1></div></div>
             <p className="bio">{data.about}</p>
             <div className="stats" aria-label="Portfolio statistics">{data.stats.map((stat) => <div className="stat" key={stat.label}><img src={stat.icon} alt="" /><div><strong>{stat.value}</strong><small>{stat.label}</small></div></div>)}</div>
             <div className="inventory"><div className="section-label"><span>SKILLS &amp; TOOLS</span><i /></div><div className="skill-list">{data.skills.map((skill) => <div className="skill" key={skill.name} title={skill.name}><img src={skill.icon} alt="" /><small>{skill.name}</small></div>)}</div></div>
@@ -661,10 +689,11 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
       <section className="portfolio-level work-level" id="work" aria-labelledby="work-heading">
         <div className="level-shell">
           <div className="level-kicker"><span>{settings.sections.graphicLevelLabel}</span><i /><small>{settings.sections.graphicArchiveLabel}</small></div>
-          <header className="level-heading"><p>{settings.sections.graphicEyebrow}</p><h2 id="work-heading"><span>{settings.sections.graphicHeadingAccent}</span> {settings.sections.graphicHeadingRest}</h2><p className="level-intro">{settings.sections.graphicIntro}</p></header>
+          <header className="level-heading"><p>{settings.sections.graphicEyebrow}</p><h2 id="work-heading"><span>{displayTitle(settings.sections.graphicHeadingAccent)}</span> {displayTitle(settings.sections.graphicHeadingRest)}</h2><p className="level-intro">{settings.sections.graphicIntro}</p></header>
+          <div className="library-status" aria-label={`${graphicProjects.length} graphic design projects`}><span>GAME LIBRARY</span><i /><strong>{String(graphicProjects.length).padStart(2, "0")} CASE FILES</strong></div>
           <div className="project-grid">
             {graphicProjects.map((project, index) => (
-              <div className={`project-card card-${(index % 3) + 1}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
+              <div className={`project-card card-${(index % 3) + 1} ${index === 0 ? "featured-project" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`View ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
                 <span className="cartridge-vents" aria-hidden="true" />
                 <div className="project-art" aria-hidden="true"><span className="project-number">0{index + 1}</span><img className="project-thumbnail" src={project.thumbnail} alt="" loading="lazy" /><strong>{project.category}</strong></div>
                 <div className="project-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools"><ProjectToolIcons tools={project.tools} /></div></div>
@@ -679,12 +708,13 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
       <section className="portfolio-level motion-level" id="motion" aria-labelledby="motion-heading">
         <div className="level-shell">
           <div className="level-kicker"><span>{settings.sections.motionLevelLabel}</span><i /><small>{settings.sections.motionArchiveLabel}</small></div>
-          <header className="level-heading"><p>{settings.sections.motionEyebrow}</p><h2 id="motion-heading"><span>{settings.sections.motionHeadingAccent}</span> {settings.sections.motionHeadingRest}</h2><p className="level-intro">{settings.sections.motionIntro}</p></header>
+          <header className="level-heading"><p>{settings.sections.motionEyebrow}</p><h2 id="motion-heading"><span>{displayTitle(settings.sections.motionHeadingAccent)}</span> {displayTitle(settings.sections.motionHeadingRest)}</h2><p className="level-intro">{settings.sections.motionIntro}</p></header>
+          <div className="library-status motion-library-status" aria-label={`${motionProjects.length} motion design projects`}><span>NOW PLAYING</span><i /><strong>{String(motionProjects.length).padStart(2, "0")} MOTION FILES</strong></div>
           <div className="motion-grid">
-            {motionProjects.map((project) => (
-              <div className={`motion-card ${project.featured ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
+            {motionProjects.map((project, index) => (
+              <div className={`motion-card ${project.featured || index === 0 ? "featured" : ""}`} key={project.id} style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties} role="button" tabIndex={0} aria-label={`Watch ${project.title} project`} onClick={(event) => openProject(project, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProject(project, event.currentTarget); } }}>
                 <span className="cartridge-vents" aria-hidden="true" />
-                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● REC</span><span className="timecode">{project.duration}</span><img className="motion-poster" src={project.poster} alt="" loading="lazy" /><strong>{project.featured ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong></div>
+                <div className="motion-screen" aria-hidden="true"><span className="rec-light">● LIVE</span><span className="timecode">{project.duration}</span>{project.videos?.[0]?.src ? <MotionLivePreview src={project.videos[0].src} poster={project.videos[0].poster || project.poster} /> : <img className="motion-poster" src={project.poster} alt="" loading="lazy" />}<strong>{project.featured || index === 0 ? "FEATURED" : `${project.videos?.length ?? 0} PROJECTS`}</strong><div className="motion-transport"><span>▶</span><i /><small>{String(index + 1).padStart(2, "0")}</small></div></div>
                 <div className="motion-copy"><p>{project.category}</p><h3>{project.title}</h3><span>{project.description}</span><div className="project-tools"><ProjectToolIcons tools={project.tools} /></div></div>
                 <span className="cartridge-contacts" aria-hidden="true" />
               </div>
@@ -697,9 +727,9 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
       <section className="portfolio-level contact-level" id="contact" aria-labelledby="contact-heading">
         <div className="level-shell">
           <div className="level-kicker"><span>{settings.sections.contactLevelLabel}</span><i /><small>{settings.sections.contactArchiveLabel}</small></div>
-          <header className="level-heading"><p>{settings.sections.contactEyebrow}</p><h2 id="contact-heading"><span>{settings.sections.contactHeadingAccent}</span> {settings.sections.contactHeadingRest}</h2><p className="level-intro">{settings.sections.contactIntro}</p></header>
+          <header className="level-heading"><p>{settings.sections.contactEyebrow}</p><h2 id="contact-heading"><span>{displayTitle(settings.sections.contactHeadingAccent)}</span> {displayTitle(settings.sections.contactHeadingRest)}</h2><p className="level-intro">{settings.sections.contactIntro}</p></header>
           <div className="contact-grid">
-            <aside className="contact-brief"><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>{settings.contact.statusLabel}</p><h3>{settings.contact.availabilityHeading}</h3><span className="contact-email">{data.contactEmail}</span><ul>{settings.contact.services.map((service, index) => <li key={service}><span>{String(index + 1).padStart(2, "0")}</span> {service}</li>)}</ul><div className="response-time"><small>{settings.contact.responseLabel}</small><strong>{settings.contact.responseValue}</strong></div></aside>
+            <aside className="contact-brief"><span className="contact-sticker" aria-hidden="true">CO-OP<br />READY!</span><div className="contact-avatar"><img src={data.brandMark} alt="" /><i /></div><p>{settings.contact.statusLabel}</p><h3>{settings.contact.availabilityHeading}</h3><span className="contact-email">{data.contactEmail}</span><ul>{settings.contact.services.map((service, index) => <li key={service}><span>{String(index + 1).padStart(2, "0")}</span> {service}</li>)}</ul><div className="response-time"><small>{settings.contact.responseLabel}</small><strong>{settings.contact.responseValue}</strong></div></aside>
             <form className="contact-form" onSubmit={submitContact} noValidate>
               <label className="contact-honeypot" aria-hidden="true"><span>WEBSITE</span><input name="companyWebsite" type="text" tabIndex={-1} autoComplete="off" /></label>
               <div className="form-row"><label><span>PLAYER NAME</span><input name="name" type="text" autoComplete="name" placeholder="Your name" /></label><label><span>EMAIL ADDRESS</span><input name="email" type="email" autoComplete="email" placeholder="you@example.com" /></label></div>
@@ -712,7 +742,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
         </div>
       </section>
 
-      <footer className="game-footer" id="finish"><div><strong>{settings.footer.heading}</strong><span>{settings.footer.subheading}</span><small>© {new Date().getFullYear()} {settings.footer.copyright}</small></div></footer>
+      <footer className="game-footer" id="finish"><div><strong>{displayTitle(settings.footer.heading)}</strong><span>{settings.footer.subheading}</span><small>© {new Date().getFullYear()} {settings.footer.copyright}</small></div></footer>
       <button className="back-to-top" type="button" onClick={() => { visitSection(0); window.history.replaceState(null, "", "#about"); document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }); }} aria-label="Back to top">
         <span aria-hidden="true">↑</span><small>TOP</small>
       </button>
@@ -728,6 +758,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
   const [started, setStarted] = useState(false);
   const [countdown, setCountdown] = useState("");
   const [soundOn, setSoundOn] = useState(false);
+  const [sfxOn, setSfxOn] = useState(false);
   const musicRef = useRef<MusicEngine | null>(null);
   const audioTrackRef = useRef<HTMLAudioElement | null>(null);
   const confirmContextRef = useRef<AudioContext | null>(null);
@@ -810,7 +841,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
   }, []);
 
   useEffect(() => {
-    if (!soundOn) return;
+    if (!sfxOn) return;
 
     const playSfx = (kind: UiSfx) => {
       const audio = confirmContextRef.current ?? musicRef.current?.context;
@@ -822,7 +853,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       const target = event.target;
       if (!(target instanceof Element)) return;
       const interactive = target.closest("a, button, select, [role='button']");
-      if (!interactive || interactive.matches(".machine-screen, .music-toggle")) return;
+      if (!interactive || interactive.matches(".machine-screen, .audio-control")) return;
       playSfx(interactive.matches(".case-close, .back-to-top, [data-sfx='exit']") ? "exit" : "click");
     };
     const handleUiKey = (event: KeyboardEvent) => {
@@ -835,7 +866,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       document.removeEventListener("click", handleUiClick, true);
       window.removeEventListener("keydown", handleUiKey, true);
     };
-  }, [settings.audio.volume, soundOn]);
+  }, [settings.audio.volume, sfxOn]);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -853,7 +884,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       gsap.timeline({ defaults: { ease: "power3.out" } })
         .to(".arcade-artboard", { y: 0, scale: 1, filter: "blur(0px)", duration: reduced ? 0.3 : 1.05, ease: reduced ? "power2.out" : "back.out(1.25)" }, reduced ? 0 : 0.12)
         .fromTo(".machine-screen", { filter: "brightness(2.6)", autoAlpha: 0 }, { filter: "brightness(1)", autoAlpha: 1, duration: 0.4 }, "-=0.2")
-        .fromTo(".start-hint, .music-toggle", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
+        .fromTo(".start-hint, .audio-controls", { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.28, onComplete: () => setReady(true) }, "-=0.1");
     }, root);
 
     return () => {
@@ -896,6 +927,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     if (settings.audio.enabled) {
       const audio = startMusic();
       setSoundOn(true);
+      setSfxOn(true);
       playConfirm(audio);
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -907,7 +939,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       .call(() => setCountdown("3"), [], "+=0.65")
       .call(() => setCountdown("2"), [], "+=0.65")
       .call(() => setCountdown("1"), [], "+=0.65")
-      .call(() => setCountdown("GO!"), [], "+=0.65")
+      .call(() => setCountdown("GO"), [], "+=0.65")
       .to(".arcade-stage", { scale: reduced ? 1 : 1.08, autoAlpha: 0, duration: reduced ? 0.25 : 0.58, ease: "power3.in" }, "+=0.52")
       .set(".arcade-stage", { display: "none" })
       .set(".about-level", { display: "block" })
@@ -928,6 +960,15 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     }
   };
 
+  const toggleSfx = () => {
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const audio = confirmContextRef.current ?? musicRef.current?.context ?? new AudioContextClass();
+    if (!confirmContextRef.current && !musicRef.current?.context) confirmContextRef.current = audio;
+    void audio.resume();
+    playArcadeSfx(audio, sfxOn ? "exit" : "click", settings.audio.volume);
+    setSfxOn((current) => !current);
+  };
+
   return (
     <div className="portfolio-root" ref={root} style={{ "--ink": settings.theme.ink, "--blue": settings.theme.blue, "--cyan": settings.theme.cyan, "--pink": settings.theme.pink, "--yellow": settings.theme.yellow, "--shell-yellow": settings.theme.shellYellow, "--shell-pink": settings.theme.shellPink, "--shell-blue": settings.theme.shellBlue } as CSSProperties}>
       <div className="arcade-cursor" ref={cursor} aria-hidden="true">
@@ -944,10 +985,14 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
 
       <AboutSection projects={projects} settings={settings} />
 
-      {settings.audio.enabled && <button className={`music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn}>
-        <span className="music-bars" aria-hidden="true"><i /><i /><i /><i /></span>
-        <span><small>{settings.audio.label}</small><strong>MUSIC {soundOn ? "ON" : "OFF"}</strong></span>
-      </button>}
+      {settings.audio.enabled && <div className="audio-controls" aria-label="Website audio controls">
+        <button className={`audio-control music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn} aria-label={`Background music ${soundOn ? "on" : "off"}`} title={`Music ${soundOn ? "on" : "off"}`}>
+          <span className="music-icon" aria-hidden="true">♫</span>
+        </button>
+        <button className={`audio-control sfx-toggle ${sfxOn ? "is-on" : ""}`} onClick={toggleSfx} aria-pressed={sfxOn} aria-label={`Interface sound effects ${sfxOn ? "on" : "off"}`} title={`Sound effects ${sfxOn ? "on" : "off"}`}>
+          <span className="sfx-icon" aria-hidden="true">✦</span>
+        </button>
+      </div>}
     </div>
   );
 }
