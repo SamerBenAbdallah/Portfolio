@@ -368,6 +368,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
 
   return (
     <div className="case-overlay">
+      <button className="case-backdrop" type="button" onClick={onClose} tabIndex={-1} aria-hidden="true" />
       <article
         className="case-modal"
         role="dialog"
