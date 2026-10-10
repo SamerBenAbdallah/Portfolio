@@ -288,7 +288,7 @@ export function AdminDashboard({ initialProjects, initialSettings, initialMessag
               <section className="admin-media-block">
                 <header><strong>Gallery images</strong><label className="admin-upload-input">Add images<input type="file" accept="image/*" multiple onChange={chooseGallery} /></label></header>
                 <div className="admin-media-preview">
-                  {draft.gallery_images.map((image, index) => <div className="admin-media-item" key={image.src}><img src={image.src} alt={image.alt} /><button type="button" aria-label={`Remove gallery image ${index + 1}`} onClick={() => update("gallery_images", draft.gallery_images.filter((_, itemIndex) => itemIndex !== index))}>×</button></div>)}
+                  {draft.gallery_images.map((image, index) => <div className="admin-media-item" key={image.src}><img src={image.src} alt={image.alt} /><button type="button" aria-label={`Remove gallery image ${index + 1}`} onClick={() => update("gallery_images", draft.gallery_images.filter((_, itemIndex) => itemIndex !== index))}><span aria-hidden="true">×</span></button></div>)}
                   {pendingGalleryPreviews.map((src, index) => <div className="admin-media-item" key={src}><img src={src} alt={`Pending gallery upload ${index + 1}`} /></div>)}
                 </div>
               </section>

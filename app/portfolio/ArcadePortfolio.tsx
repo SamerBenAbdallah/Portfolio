@@ -6,99 +6,18 @@ import type { ArcadeProject } from "../lib/projects/types";
 import { ProjectToolIcons } from "../lib/projects/ProjectToolIcons";
 import type { SiteSettings } from "../lib/settings/types";
 
-type MusicEngine = {
-  context: AudioContext;
-  master: GainNode;
-  timer: number;
-  nextNoteTime: number;
-  step: number;
-  active: boolean;
-};
-
 type UiSfx = "click" | "exit";
+
+const defaultArcadeImage = "/assets/arcade/v2/arcade-room-v2.png";
+
+function optimizedLocalAsset(src: string) {
+  if (src === "/assets/arcade/v3/samer-profile.png") return "/assets/arcade/v3/samer-profile.webp";
+  if (src === "/assets/arcade/v3/samer-mark-transparent.png") return "/assets/arcade/v3/samer-mark-transparent.webp";
+  return src;
+}
 
 function displayTitle(value: string) {
   return value.split(/(I)/g).map((part, index) => part === "I" ? <span className="readable-title-i" key={`i-${index}`}>I</span> : part);
-}
-
-const melodyBars = [
-  [76, null, 79, 83, null, 81, 79, null, 76, null, 74, 76, 79, null, 81, null],
-  [83, null, 81, 79, 76, null, 74, null, 71, null, 74, 76, null, 79, 76, null],
-  [76, 79, null, 83, 86, null, 83, null, 81, 79, null, 76, 74, null, 71, null],
-  [79, null, 83, null, 86, 83, 81, null, 79, null, 76, 79, 81, null, 83, null],
-  [88, null, 86, 83, null, 81, 79, null, 83, null, 81, 79, 76, null, 74, null],
-  [76, null, null, 79, 81, null, 83, null, 86, null, 83, 81, null, 79, 76, null],
-  [79, 81, 83, null, 81, 79, 76, null, 74, 76, 79, null, 76, null, null, null],
-] as const;
-const melodyOrder = [0, 1, 2, 0, 3, 1, 4, 0, 5, 2, 6, 3, 1, 6] as const;
-const bassRoots = [40, 36, 43, 38, 40, 36, 43, 38, 40, 43, 36, 38, 43, 40] as const;
-const chordProgression = [
-  [52, 55, 59, 64], [48, 52, 55, 59], [55, 59, 62, 67], [50, 54, 57, 62],
-  [52, 55, 59, 64], [48, 52, 55, 60], [55, 59, 62, 67], [50, 54, 57, 62],
-  [52, 55, 59, 64], [55, 59, 62, 67], [48, 52, 55, 60], [50, 54, 57, 62],
-  [55, 59, 62, 67], [52, 55, 59, 64],
-] as const;
-const loopSteps = 224;
-
-function midiToHz(note: number) {
-  return 440 * 2 ** ((note - 69) / 12);
-}
-
-function scheduleTone(context: AudioContext, destination: AudioNode, note: number, time: number, duration: number, volume: number, type: OscillatorType) {
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  const filter = context.createBiquadFilter();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(midiToHz(note), time);
-  filter.type = "lowpass";
-  filter.frequency.setValueAtTime(type === "square" ? 2400 : 950, time);
-  gain.gain.setValueAtTime(0.0001, time);
-  gain.gain.exponentialRampToValueAtTime(volume, time + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-  oscillator.connect(filter).connect(gain).connect(destination);
-  oscillator.start(time);
-  oscillator.stop(time + duration + 0.03);
-}
-
-function scheduleKick(context: AudioContext, destination: AudioNode, time: number) {
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(135, time);
-  oscillator.frequency.exponentialRampToValueAtTime(46, time + 0.11);
-  gain.gain.setValueAtTime(0.12, time);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.13);
-  oscillator.connect(gain).connect(destination);
-  oscillator.start(time);
-  oscillator.stop(time + 0.14);
-}
-
-function scheduleHat(context: AudioContext, destination: AudioNode, time: number) {
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "square";
-  oscillator.frequency.setValueAtTime(3900, time);
-  gain.gain.setValueAtTime(0.011, time);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.028);
-  oscillator.connect(gain).connect(destination);
-  oscillator.start(time);
-  oscillator.stop(time + 0.03);
-}
-
-function scheduleSnare(context: AudioContext, destination: AudioNode, time: number) {
-  const buffer = context.createBuffer(1, Math.floor(context.sampleRate * 0.12), context.sampleRate);
-  const samples = buffer.getChannelData(0);
-  for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
-  const source = context.createBufferSource();
-  const filter = context.createBiquadFilter();
-  const gain = context.createGain();
-  source.buffer = buffer;
-  filter.type = "bandpass";
-  filter.frequency.setValueAtTime(1450, time);
-  gain.gain.setValueAtTime(0.018, time);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.1);
-  source.connect(filter).connect(gain).connect(destination);
-  source.start(time);
 }
 
 function playArcadeSfx(context: AudioContext, kind: UiSfx, siteVolume: number) {
@@ -134,50 +53,99 @@ function playArcadeSfx(context: AudioContext, kind: UiSfx, siteVolume: number) {
   }
 }
 
-function createArcadeMusic(volume = 0.38): MusicEngine {
-  const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  const context = new AudioContextClass();
+function midiToHz(note: number) {
+  return 440 * 2 ** ((note - 69) / 12);
+}
+
+function startIntroJingle(context: AudioContext, siteVolume: number) {
+  const now = context.currentTime;
   const master = context.createGain();
   const compressor = context.createDynamicsCompressor();
-  master.gain.setValueAtTime(volume, context.currentTime);
-  compressor.threshold.setValueAtTime(-18, context.currentTime);
-  compressor.ratio.setValueAtTime(4, context.currentTime);
+  const notes = [64, 67, 71, 76, 71, 79, 76, 83, 79, 76, 71, 74, 76, 79, 83, 88, 83, 79, 76, 71, 74, 79, 76, 83];
+  const level = Math.min(.16, Math.max(.065, siteVolume * .34));
+  master.gain.setValueAtTime(.0001, now);
+  master.gain.exponentialRampToValueAtTime(level, now + .08);
+  compressor.threshold.setValueAtTime(-18, now);
+  compressor.ratio.setValueAtTime(4, now);
   master.connect(compressor).connect(context.destination);
 
-  const engine: MusicEngine = {
-    context,
-    master,
-    timer: 0,
-    nextNoteTime: context.currentTime + 0.05,
-    step: 0,
-    active: true,
-  };
-  // Fourteen 16-step bars at 112 BPM make one varied, seamless 30-second loop.
-  const stepDuration = 60 / 112 / 4;
+  notes.forEach((note, index) => {
+    const start = now + index * .17;
+    const oscillator = context.createOscillator();
+    const filter = context.createBiquadFilter();
+    const envelope = context.createGain();
+    oscillator.type = index % 4 === 3 ? "triangle" : "square";
+    oscillator.frequency.setValueAtTime(midiToHz(note), start);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(2200, start);
+    envelope.gain.setValueAtTime(.0001, start);
+    envelope.gain.exponentialRampToValueAtTime(index % 4 === 0 ? .23 : .15, start + .015);
+    envelope.gain.exponentialRampToValueAtTime(.0001, start + .145);
+    oscillator.connect(filter).connect(envelope).connect(master);
+    oscillator.start(start);
+    oscillator.stop(start + .16);
 
-  const scheduler = () => {
-    while (engine.active && engine.nextNoteTime < context.currentTime + 0.14) {
-      const phraseStep = engine.step % loopSteps;
-      const bar = Math.floor(phraseStep / 16);
-      const barStep = phraseStep % 16;
-      const melodyNote = melodyBars[melodyOrder[bar]][barStep];
-      const chord = chordProgression[bar];
-      const arpNote = chord[(barStep / 2) % chord.length];
-      if (melodyNote !== null) scheduleTone(context, master, melodyNote, engine.nextNoteTime, stepDuration * 1.42, 0.052, "square");
-      if (barStep % 2 === 0 && !(bar === 0 && barStep < 8)) scheduleTone(context, master, arpNote, engine.nextNoteTime, stepDuration * 1.72, 0.018, "triangle");
-      if (barStep % 8 === 0) scheduleTone(context, master, bassRoots[bar], engine.nextNoteTime, stepDuration * 6.5, 0.065, "triangle");
-      if (barStep === 0 || barStep === 10) scheduleKick(context, master, engine.nextNoteTime);
-      if (barStep === 4 || barStep === 12) scheduleSnare(context, master, engine.nextNoteTime);
-      if (barStep % 2 === 0 && bar !== 13) scheduleHat(context, master, engine.nextNoteTime);
-      engine.nextNoteTime += stepDuration;
-      engine.step += 1;
+    if (index % 4 === 0) {
+      const bass = context.createOscillator();
+      const bassGain = context.createGain();
+      bass.type = "triangle";
+      bass.frequency.setValueAtTime(midiToHz(note - 24), start);
+      bassGain.gain.setValueAtTime(.18, start);
+      bassGain.gain.exponentialRampToValueAtTime(.0001, start + .55);
+      bass.connect(bassGain).connect(master);
+      bass.start(start);
+      bass.stop(start + .58);
     }
-  };
+  });
 
-  scheduler();
-  engine.timer = window.setInterval(scheduler, 50);
-  void context.resume();
-  return engine;
+  return master;
+}
+
+function playWhooshSfx(context: AudioContext, siteVolume: number) {
+  const now = context.currentTime;
+  const duration = 1.05;
+  const volume = Math.min(.12, Math.max(.045, siteVolume * .25));
+  const output = context.createGain();
+  output.gain.setValueAtTime(.0001, now);
+  output.gain.linearRampToValueAtTime(volume, now + .12);
+  output.gain.linearRampToValueAtTime(volume * .72, now + .4);
+  output.gain.exponentialRampToValueAtTime(.0001, now + duration);
+  output.connect(context.destination);
+
+  const oscillator = context.createOscillator();
+  const oscillatorGain = context.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(135, now);
+  oscillator.frequency.exponentialRampToValueAtTime(220, now + .24);
+  oscillator.frequency.exponentialRampToValueAtTime(62, now + duration);
+  oscillatorGain.gain.setValueAtTime(.0001, now);
+  oscillatorGain.gain.linearRampToValueAtTime(.19, now + .14);
+  oscillatorGain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+  oscillator.connect(oscillatorGain).connect(output);
+  oscillator.start(now);
+  oscillator.stop(now + duration);
+
+  const buffer = context.createBuffer(1, Math.floor(context.sampleRate * duration), context.sampleRate);
+  const channel = buffer.getChannelData(0);
+  for (let index = 0; index < channel.length; index += 1) {
+    const progress = index / channel.length;
+    const envelope = Math.sin(Math.PI * progress) ** 1.7;
+    channel[index] = (Math.random() * 2 - 1) * envelope;
+  }
+  const noise = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const noiseGain = context.createGain();
+  noise.buffer = buffer;
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(420, now);
+  filter.frequency.exponentialRampToValueAtTime(2800, now + .32);
+  filter.frequency.exponentialRampToValueAtTime(240, now + duration);
+  filter.Q.setValueAtTime(.35, now);
+  noiseGain.gain.setValueAtTime(.0001, now);
+  noiseGain.gain.linearRampToValueAtTime(.62, now + .18);
+  noiseGain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+  noise.connect(filter).connect(noiseGain).connect(output);
+  noise.start(now);
 }
 
 function ArcadeStage({
@@ -197,12 +165,15 @@ function ArcadeStage({
     <section className="arcade-stage" aria-label="Press start scene">
       <div className="arcade-artboard">
         <picture>
+          <source media="(max-width: 720px)" type="image/webp" srcSet="/assets/arcade/v2/arcade-room-v2-mobile.webp" />
           <source media="(max-width: 720px)" srcSet="/assets/arcade/v2/arcade-room-v2-mobile.png" />
+          {settings.arcadeImage === defaultArcadeImage && <source type="image/webp" srcSet="/assets/arcade/v2/arcade-room-v2.webp" />}
           <img
             className="arcade-room-art"
             src={settings.arcadeImage}
             alt={settings.arcadeImageAlt}
             fetchPriority="high"
+            decoding="async"
             draggable={false}
           />
         </picture>
@@ -404,7 +375,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
         aria-labelledby="case-title"
         style={{ "--project-accent": project.accent, "--project-secondary": project.secondary } as CSSProperties}
       >
-        <button ref={closeButton} className="case-close" type="button" onClick={onClose} aria-label="Close project case file">×</button>
+        <button ref={closeButton} className="case-close" type="button" onClick={onClose} aria-label="Close project case file"><span aria-hidden="true">×</span></button>
         <div className={`case-preview ${project.kind} ${project.longform ? "longform" : ""}`}>
           <span className="case-status">{`${project.kind === "motion" ? "MOTION FEED" : "DESIGN FILE"} // ONLINE`}</span>
           <div
@@ -412,7 +383,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
             onWheel={!project.longform && mediaCount > 1 ? scrollPreview : undefined}
           >
             {project.kind === "graphic" && selectedImage && (
-              <img className="case-media-image" src={selectedImage.src} alt={selectedImage.alt} />
+              <img className="case-media-image" src={selectedImage.src} alt={selectedImage.alt} decoding="async" />
             )}
             {project.kind === "motion" && selectedVideo && (
               // The portfolio media may be visual-only and no caption file is stored for legacy clips.
@@ -430,7 +401,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
                 <div className="case-gallery" ref={galleryRail} onWheel={scrollPreview} aria-label={`${project.title} scrollable gallery`}>
                   {project.images.map((image, index) => (
                     <button data-index={index} className={index === activeMedia ? "active" : ""} type="button" key={image.src} onClick={() => showMedia(index)} aria-label={`View image ${index + 1} of ${project.images?.length}`}>
-                      <img src={image.src} alt="" loading="lazy" /><span>{String(index + 1).padStart(2, "0")}</span>
+                      <img src={image.src} alt="" loading="lazy" decoding="async" /><span>{String(index + 1).padStart(2, "0")}</span>
                     </button>
                   ))}
                 </div>
@@ -443,7 +414,7 @@ function ProjectModal({ project, onClose }: { project: ArcadeProject; onClose: (
             <div className="case-playlist" aria-label={`${project.title} video playlist`}>
               {project.videos.map((video, index) => (
                 <button className={index === activeMedia ? "active" : ""} type="button" key={video.src} onClick={() => showMedia(index)}>
-                  <img src={video.poster} alt="" loading="lazy" /><span><strong>{video.title}</strong><small>{video.duration}</small></span>
+                  <img src={video.poster} alt="" loading="lazy" decoding="async" /><span><strong>{video.title}</strong><small>{video.duration}</small></span>
                 </button>
               ))}
             </div>
@@ -484,7 +455,7 @@ function MotionLivePreview({ src, poster }: { src: string; poster?: string }) {
     };
   }, [src]);
 
-  return <video ref={previewRef} className="motion-poster motion-live-preview" src={src} poster={poster} muted loop playsInline autoPlay preload="metadata" onMouseEnter={(event) => void event.currentTarget.play().catch(() => undefined)} />;
+  return <video ref={previewRef} className="motion-poster motion-live-preview" src={src} poster={poster} muted loop playsInline preload="none" onMouseEnter={(event) => void event.currentTarget.play().catch(() => undefined)} />;
 }
 
 function AboutSection({ projects, settings }: { projects: ArcadeProject[]; settings: SiteSettings }) {
@@ -492,15 +463,13 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
     playerLabel: settings.profile.name,
     role: settings.profile.role,
     about: settings.profile.about,
-    profileImage: settings.profile.profileImage,
-    brandMark: settings.profile.brandMark,
+    profileImage: optimizedLocalAsset(settings.profile.profileImage),
+    brandMark: optimizedLocalAsset(settings.profile.brandMark),
     stats: settings.profile.stats,
     skills: settings.profile.skills,
     contactEmail: settings.contact.email,
     navigation: settings.sections.navigation,
   };
-  const [primaryName, ...secondaryNameParts] = data.playerLabel.trim().split(/\s+/);
-  const secondaryName = secondaryNameParts.join(" ");
   const [activeSection, setActiveSection] = useState(0);
   const [heartLevel, setHeartLevel] = useState(0);
   const [breakingHeart, setBreakingHeart] = useState<number | null>(null);
@@ -675,9 +644,9 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
       <section className="about-shell" id="about">
         <div className="level-kicker"><span>{settings.sections.profileLevelLabel}</span><i /><small>{settings.sections.profileArchiveLabel}</small></div>
         <div className="about-grid">
-          <figure className="profile-panel"><img src={data.profileImage} alt={`Pixel-art portrait of ${data.playerLabel}`} /><figcaption>{settings.profile.profileCaption}</figcaption></figure>
+          <figure className="profile-panel"><img src={data.profileImage} alt={`Pixel-art portrait of ${data.playerLabel}`} decoding="async" /><figcaption>{settings.profile.profileCaption}</figcaption></figure>
           <div className="about-copy">
-            <div className="about-title-row"><img src={data.brandMark} alt="" /><div><p>{settings.profile.selectedLabel}</p><h1 id="about-heading"><strong>{secondaryName && <span className="name-secondary">{secondaryName}</span>}<span className="name-primary">{primaryName}</span></strong></h1></div></div>
+            <div className="about-title-row"><img src={data.brandMark} alt="" decoding="async" /><div><p>{settings.profile.selectedLabel}</p><h1 id="about-heading"><strong>{data.playerLabel}</strong></h1></div></div>
             <p className="bio">{data.about}</p>
             <div className="stats" aria-label="Portfolio statistics">{data.stats.map((stat) => <div className="stat" key={stat.label}><img src={stat.icon} alt="" /><div><strong>{stat.value}</strong><small>{stat.label}</small></div></div>)}</div>
             <div className="inventory"><div className="section-label"><span>SKILLS &amp; TOOLS</span><i /></div><div className="skill-list">{data.skills.map((skill) => <div className="skill" key={skill.name} title={skill.name}><img src={skill.icon} alt="" /><small>{skill.name}</small></div>)}</div></div>
@@ -744,7 +713,7 @@ function AboutSection({ projects, settings }: { projects: ArcadeProject[]; setti
 
       <footer className="game-footer" id="finish"><div><strong>{displayTitle(settings.footer.heading)}</strong><span>{settings.footer.subheading}</span><small>© {new Date().getFullYear()} {settings.footer.copyright}</small></div></footer>
       <button className="back-to-top" type="button" onClick={() => { visitSection(0); window.history.replaceState(null, "", "#about"); document.getElementById("about")?.scrollIntoView({ behavior: "smooth" }); }} aria-label="Back to top">
-        <span aria-hidden="true">↑</span><small>TOP</small>
+        <span aria-hidden="true">↑</span>
       </button>
       {selectedProject && <ProjectModal project={selectedProject} onClose={closeProject} />}
     </main>
@@ -757,52 +726,10 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [countdown, setCountdown] = useState("");
-  const [soundOn, setSoundOn] = useState(false);
   const [sfxOn, setSfxOn] = useState(false);
-  const musicRef = useRef<MusicEngine | null>(null);
-  const audioTrackRef = useRef<HTMLAudioElement | null>(null);
   const confirmContextRef = useRef<AudioContext | null>(null);
-  const soundtrackUrl = settings.audio.audioUrl;
-
-  const startMusic = () => {
-    if (soundtrackUrl) {
-      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const context = confirmContextRef.current ?? new AudioContextClass();
-      confirmContextRef.current = context;
-      if (!audioTrackRef.current) {
-        const track = new Audio(soundtrackUrl);
-        track.loop = true;
-        track.preload = "auto";
-        audioTrackRef.current = track;
-      }
-      audioTrackRef.current.volume = settings.audio.volume;
-      void audioTrackRef.current.play();
-      void context.resume();
-      return context;
-    }
-    if (musicRef.current?.active) {
-      void musicRef.current.context.resume();
-      return musicRef.current.context;
-    }
-    const engine = createArcadeMusic(settings.audio.volume);
-    musicRef.current = engine;
-    return engine.context;
-  };
-
-  const stopMusic = () => {
-    if (audioTrackRef.current) {
-      audioTrackRef.current.pause();
-      audioTrackRef.current.currentTime = 0;
-    }
-    const engine = musicRef.current;
-    if (!engine) return;
-    engine.active = false;
-    window.clearInterval(engine.timer);
-    engine.master.gain.cancelScheduledValues(engine.context.currentTime);
-    engine.master.gain.setTargetAtTime(0.0001, engine.context.currentTime, 0.035);
-    window.setTimeout(() => void engine.context.close(), 220);
-    musicRef.current = null;
-  };
+  const introMusicGainRef = useRef<GainNode | null>(null);
+  const introTrackRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const cursorElement = cursor.current;
@@ -844,7 +771,7 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     if (!sfxOn) return;
 
     const playSfx = (kind: UiSfx) => {
-      const audio = confirmContextRef.current ?? musicRef.current?.context;
+      const audio = confirmContextRef.current;
       if (!audio || audio.state === "closed") return;
       void audio.resume();
       playArcadeSfx(audio, kind, settings.audio.volume);
@@ -889,19 +816,18 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
 
     return () => {
       ctx.revert();
-      const engine = musicRef.current;
-      if (engine) {
-        engine.active = false;
-        window.clearInterval(engine.timer);
-        void engine.context.close();
-        musicRef.current = null;
+      const audio = confirmContextRef.current;
+      if (introTrackRef.current) {
+        introTrackRef.current.pause();
+        introTrackRef.current = null;
       }
-      if (audioTrackRef.current) {
-        audioTrackRef.current.pause();
-        audioTrackRef.current = null;
+      if (introMusicGainRef.current && audio && audio.state !== "closed") {
+        introMusicGainRef.current.gain.cancelScheduledValues(audio.currentTime);
+        introMusicGainRef.current.gain.setValueAtTime(.0001, audio.currentTime);
+        introMusicGainRef.current = null;
       }
-      if (confirmContextRef.current) {
-        void confirmContextRef.current.close();
+      if (audio) {
+        void audio.close();
         confirmContextRef.current = null;
       }
       document.body.style.overflow = "";
@@ -921,14 +847,61 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
     oscillator.stop(audio.currentTime + 0.16);
   };
 
+  const startIntroAudio = (audio: AudioContext) => {
+    if (settings.audio.audioUrl) {
+      const track = new Audio(settings.audio.audioUrl);
+      track.preload = "auto";
+      track.loop = false;
+      track.volume = settings.audio.volume;
+      introTrackRef.current = track;
+      void track.play().catch(() => {
+        introTrackRef.current = null;
+        introMusicGainRef.current = startIntroJingle(audio, settings.audio.volume);
+      });
+      return;
+    }
+
+    introMusicGainRef.current = startIntroJingle(audio, settings.audio.volume);
+  };
+
+  const fadeOutIntroAudio = () => {
+    const track = introTrackRef.current;
+    if (track) {
+      gsap.killTweensOf(track);
+      gsap.to(track, {
+        volume: 0,
+        duration: .62,
+        ease: "power2.in",
+        onComplete: () => {
+          track.pause();
+          track.currentTime = 0;
+          if (introTrackRef.current === track) introTrackRef.current = null;
+        },
+      });
+    }
+
+    const audio = confirmContextRef.current;
+    const gain = introMusicGainRef.current;
+    if (audio && gain && audio.state !== "closed") {
+      const now = audio.currentTime;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(Math.max(.0001, gain.gain.value), now);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .62);
+      introMusicGainRef.current = null;
+    }
+  };
+
   const startGame = () => {
     if (!ready || started) return;
     setStarted(true);
     if (settings.audio.enabled) {
-      const audio = startMusic();
-      setSoundOn(true);
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const audio = confirmContextRef.current ?? new AudioContextClass();
+      confirmContextRef.current = audio;
+      void audio.resume();
       setSfxOn(true);
       playConfirm(audio);
+      startIntroAudio(audio);
     }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -939,7 +912,12 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       .call(() => setCountdown("3"), [], "+=0.65")
       .call(() => setCountdown("2"), [], "+=0.65")
       .call(() => setCountdown("1"), [], "+=0.65")
-      .call(() => setCountdown("GO"), [], "+=0.65")
+      .call(() => {
+        setCountdown("GO");
+        fadeOutIntroAudio();
+        const audio = confirmContextRef.current;
+        if (audio && audio.state !== "closed") playWhooshSfx(audio, settings.audio.volume);
+      }, [], "+=0.65")
       .to(".arcade-stage", { scale: reduced ? 1 : 1.08, autoAlpha: 0, duration: reduced ? 0.25 : 0.58, ease: "power3.in" }, "+=0.52")
       .set(".arcade-stage", { display: "none" })
       .set(".about-level", { display: "block" })
@@ -947,23 +925,10 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       .fromTo(".about-grid > *", { y: reduced ? 8 : 38, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.12, duration: reduced ? 0.2 : 0.65, ease: "power3.out", onComplete: () => { document.body.style.overflow = "auto"; window.scrollTo(0, 0); } }, "<0.06");
   };
 
-  const toggleMusic = () => {
-    if (soundOn) {
-      const audio = confirmContextRef.current ?? musicRef.current?.context;
-      if (audio && audio.state !== "closed") playArcadeSfx(audio, "click", settings.audio.volume);
-      stopMusic();
-      setSoundOn(false);
-    } else {
-      setSoundOn(true);
-      const audio = startMusic();
-      playArcadeSfx(audio, "click", settings.audio.volume);
-    }
-  };
-
   const toggleSfx = () => {
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const audio = confirmContextRef.current ?? musicRef.current?.context ?? new AudioContextClass();
-    if (!confirmContextRef.current && !musicRef.current?.context) confirmContextRef.current = audio;
+    const audio = confirmContextRef.current ?? new AudioContextClass();
+    if (!confirmContextRef.current) confirmContextRef.current = audio;
     void audio.resume();
     playArcadeSfx(audio, sfxOn ? "exit" : "click", settings.audio.volume);
     setSfxOn((current) => !current);
@@ -986,9 +951,6 @@ export function ArcadePortfolio({ projects, settings }: { projects: ArcadeProjec
       <AboutSection projects={projects} settings={settings} />
 
       {settings.audio.enabled && <div className="audio-controls" aria-label="Website audio controls">
-        <button className={`audio-control music-toggle ${soundOn ? "is-on" : ""}`} onClick={toggleMusic} aria-pressed={soundOn} aria-label={`Background music ${soundOn ? "on" : "off"}`} title={`Music ${soundOn ? "on" : "off"}`}>
-          <span className="music-icon" aria-hidden="true">♫</span>
-        </button>
         <button className={`audio-control sfx-toggle ${sfxOn ? "is-on" : ""}`} onClick={toggleSfx} aria-pressed={sfxOn} aria-label={`Interface sound effects ${sfxOn ? "on" : "off"}`} title={`Sound effects ${sfxOn ? "on" : "off"}`}>
           <span className="sfx-icon" aria-hidden="true">✦</span>
         </button>
